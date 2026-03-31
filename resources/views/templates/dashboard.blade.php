@@ -175,14 +175,14 @@
                         <a class="sidebar-link sidebar-title link-nav" href="{{ url('/dashboard') }}"><i data-feather="home"> </i><span>Dashboard</span></a>
                       </li>
 
-                      <li class="sidebar-list">
+                      <!-- <li class="sidebar-list">
                         <a class="sidebar-link sidebar-title link-nav" href="{{ url('/notifications') }}"><i data-feather="bell"></i>
                           <span>Notifications</span>
                           @if (auth()->user()->notifications()->whereNull('read_at')->count() > 0)
                             <span class="badge rounded-pill badge-danger">{{ auth()->user()->notifications()->whereNull('read_at')->count() }}</span>
                           @endif
                         </a>
-                      </li>
+                      </li> -->
 
                       <li class="sidebar-list">
                         <a class="sidebar-link sidebar-title link-nav" href="{{ url('/my-profile') }}"><i data-feather="user-check"> </i><span>My Profile</span></a>
