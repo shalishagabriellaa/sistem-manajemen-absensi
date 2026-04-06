@@ -188,12 +188,12 @@
                                     <span style="{{ Request::is('my-profile*') ? 'color: blue' : '' }}">My Profile</span>
                                 </a>
                             </li>
-                            <li>
+                            <!-- <li>
                                 <a href="{{ url('/pegawai') }}" class="nav-link">
                                     <i class="fas fa-users" style="{{ Request::is('pegawai*') ? 'color: blue' : 'color: black' }}"></i>
                                     <span style="{{ Request::is('pegawai*') ? 'color: blue' : '' }}">Pegawai</span>
                                 </a>
-                            </li>
+                            </li> -->
                             <li>
                                 <a href="{{ url('/payroll') }}" class="nav-link">
                                     <i class="fa fa-file-invoice-dollar" style="{{ Request::is('payroll*') ? 'color: blue' : 'color: black' }}"></i>
