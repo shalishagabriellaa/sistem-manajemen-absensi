@@ -69,12 +69,14 @@
                                         <td>Rp {{ number_format($d->nominal) }}</td>
                                         <td>{{ $d->keperluan  }}</td>
                                         <td>
-                                            @if ($d->status == 'ACC')
-                                                <span class="badge badge-success">{{ $d->status  }}</span>
-                                            @else
-                                                <span class="badge badge-warning">{{ $d->status  }}</span>
-                                            @endif
-                                        </td>
+    @if ($d->status == 'ACC')
+        <span class="badge badge-success">{{ $d->status }}</span>
+    @elseif ($d->status == 'REJECTED')
+        <span class="badge badge-danger">{{ $d->status }}</span>
+    @else
+        <span class="badge badge-warning">{{ $d->status }}</span>
+    @endif
+</td>
                                         <td>
                                             <ul class="action">
                                                 @if (auth()->user()->is_admin == 'admin')
@@ -83,13 +85,6 @@
                                                             <a href="{{ url('/kasbon/edit/'.$d->id) }}"><i style="color: blue" class="fa fa-solid fa-edit"></i></a>
                                                         </li>
                                                     @endif
-                                                    <li class="delete">
-                                                        <form action="{{ url('/kasbon/delete/'.$d->id) }}" method="post" class="d-inline">
-                                                            @method('delete')
-                                                            @csrf
-                                                            <button class="border-0" style="background-color: transparent" onClick="return confirm('Are You Sure')"><i class="fa fa-solid fa-trash"></i></button>
-                                                        </form>
-                                                    </li>
                                                 @else
                                                     @if ($d->status !== 'ACC')
                                                         <li>

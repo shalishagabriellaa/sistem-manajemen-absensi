@@ -100,27 +100,34 @@ class KasbonController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
-    {
-        $kasbon = Kasbon::find($id);
-        $validated = $request->validate([
-            'user_id' => 'required',
-            'tanggal' => 'required',
-            'nominal' => 'required',
-            'keperluan' => 'required',
-            'status' => 'required',
-        ]);
+public function update(Request $request, $id)
+{
+    $kasbon = Kasbon::find($id);
+    $validated = $request->validate([
+        'user_id'        => 'required',
+        'tanggal'        => 'required',
+        'nominal'        => 'required',
+        'keperluan'      => 'required',
+        'status'         => 'required',
+        'alasan_ditolak' => 'required_if:status,REJECTED',
+    ]);
 
-        $validated['nominal'] = str_replace(',', '', $validated['nominal']);
+    $validated['nominal'] = str_replace(',', '', $validated['nominal']);
 
-        if ($validated['status'] == 'ACC') {
-            $user = User::find($validated['user_id']);
-            $user->update(['saldo_kasbon' => $user->saldo_kasbon + $validated['nominal']]);
-        }
-
-        $kasbon->update($validated);
-        return redirect('/kasbon')->with('success', 'Data Berhasil Diupdate');
+    if ($validated['status'] == 'ACC') {
+        $user = User::find($validated['user_id']);
+        $user->update(['saldo_kasbon' => $user->saldo_kasbon + $validated['nominal']]);
     }
+
+    // Kalau status berubah dari ACC ke REJECTED, kurangi saldo kembali
+    if ($kasbon->status == 'ACC' && $validated['status'] == 'REJECTED') {
+        $user = User::find($validated['user_id']);
+        $user->update(['saldo_kasbon' => $user->saldo_kasbon - $validated['nominal']]);
+    }
+
+    $kasbon->update($validated);
+    return redirect('/kasbon')->with('success', 'Data Berhasil Diupdate');
+}
 
     public function delete($id)
     {

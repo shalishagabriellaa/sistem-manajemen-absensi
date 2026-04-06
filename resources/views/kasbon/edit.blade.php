@@ -72,23 +72,20 @@
                     <div class="form-group">
                         @if (auth()->user()->is_admin == 'admin')
                             @php
-                                $status = array(
-                                [
-                                    "status" => "PENDING",
-                                ],
-                                [
-                                    "status" => "ACC",
-                                ]);
+                                $status = [
+                                    ['status' => 'PENDING'],
+                                    ['status' => 'ACC'],
+                                    ['status' => 'REJECTED'],
+                                ];
                             @endphp
                             <label for="status" class="float-left">Status</label>
-                            <select class="form-control selectpicker @error('status') is-invalid @enderror" id="status" name="status" data-live-search="true">
+                            <select class="form-control @error('status') is-invalid @enderror" id="status" name="status">
                                 <option value="">Pilih Status</option>
                                 @foreach ($status as $stat)
-                                    @if(old('status', $kasbon->status) == $stat['status'])
-                                        <option value="{{ $stat['status'] }}" selected>{{ $stat['status'] }}</option>
-                                    @else
-                                        <option value="{{ $stat['status'] }}">{{ $stat['status'] }}</option>
-                                    @endif
+                                    <option value="{{ $stat['status'] }}"
+                                        {{ old('status', $kasbon->status) == $stat['status'] ? 'selected' : '' }}>
+                                        {{ $stat['status'] }}
+                                    </option>
                                 @endforeach
                             </select>
                             @error('status')
@@ -96,6 +93,18 @@
                                     {{ $message }}
                                 </div>
                             @enderror
+
+                            {{-- Box alasan ditolak --}}
+                            <div class="form-group mt-3" id="box_alasan" style="display: none;">
+                                <label for="alasan_ditolak" class="float-left">Alasan Ditolak</label>
+                                <textarea name="alasan_ditolak" id="alasan_ditolak" rows="3"
+                                    class="form-control @error('alasan_ditolak') is-invalid @enderror">{{ old('alasan_ditolak', $kasbon->alasan_ditolak) }}</textarea>
+                                @error('alasan_ditolak')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
                         @else
                             <input type="hidden" name="status" value="{{ $kasbon->status }}">
                         @endif
@@ -111,6 +120,23 @@
             $(document).ready(function(){
                 $('.money').mask('000,000,000,000,000', {
                     reverse: true
+                });
+
+                function toggleAlasan() {
+                    if ($('#status').val() === 'REJECTED') {
+                        $('#box_alasan').show();
+                    } else {
+                        $('#box_alasan').hide();
+                        $('#alasan_ditolak').val('');
+                    }
+                }
+
+                // Cek saat halaman pertama kali load
+                toggleAlasan();
+
+                // Pakai change biasa karena blade ini tidak pakai select2
+                $('#status').on('change', function () {
+                    toggleAlasan();
                 });
             });
         </script>
