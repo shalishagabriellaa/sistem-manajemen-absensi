@@ -277,13 +277,15 @@
                     <h3>Berita</h3> <a href="{{ url('/berita-user') }}" class="primary_color fw_6">View All</a>
                 </div>
                 <div class="swiper-container banner-tes">
-                <div class="swiper-wrapper">
-                    @foreach ($berita as $ber)
-                        <div class="swiper-slide">
-                            <img src="{{ url('/storage/'.$ber->berita_file_path) }}" alt="{{ $ber->berita_file_name }}">
-                        </div>
-                    @endforeach
-                </div>
+                    <div class="swiper-wrapper">
+                        @foreach ($berita as $ber)
+                            <div class="swiper-slide">
+                                <a href="{{ url('/berita-user/show/'.$ber->id) }}">
+                                    <img src="{{ url('/storage/'.$ber->berita_file_path) }}" alt="{{ $ber->berita_file_name }}" style="width:100%; border-radius:8px;">
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
             <div class="mt-5">
@@ -291,13 +293,15 @@
                     <h3>Informasi</h3> <a href="{{ url('/informasi-user') }}" class="primary_color fw_6">View All</a>
                 </div>
                 <div class="swiper-container banner-tes">
-                <div class="swiper-wrapper">
-                    @foreach ($informasi as $inf)
-                        <div class="swiper-slide">
-                            <img src="{{ url('/storage/'.$inf->berita_file_path) }}" alt="{{ $inf->berita_file_name }}">
-                        </div>
-                    @endforeach
-                </div>
+                    <div class="swiper-wrapper">
+                        @foreach ($informasi as $inf)
+                            <div class="swiper-slide">
+                                <a href="{{ url('/informasi-user/show/'.$inf->id) }}">
+                                    <img src="{{ url('/storage/'.$inf->berita_file_path) }}" alt="{{ $inf->berita_file_name }}" style="width:100%; border-radius:8px;">
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>
