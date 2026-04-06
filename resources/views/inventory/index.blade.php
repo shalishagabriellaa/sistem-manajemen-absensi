@@ -59,19 +59,8 @@
                                             <td>{!! $inventory->desc ? nl2br(e($inventory->desc)) : '-' !!}</td>
                                             <td class="text-center">{{ $inventory->lokasi->nama_lokasi ?? '-' }}</td>
                                             <td class="text-center">{{ $inventory->jabatan->nama_jabatan ?? '-' }}</td>
-                                            <td>
-                                                <ul class="action">
-                                                    <li class="edit">
-                                                        <a href="{{ url('/inventory/edit/'.$inventory->id) }}"><i class="fa fa-solid fa-edit"></i></a>
-                                                    </li>
-                                                    <li class="delete">
-                                                        <form action="{{ url('/inventory/delete/'.$inventory->id) }}" method="post" class="d-inline">
-                                                            @method('delete')
-                                                            @csrf
-                                                            <button class="border-0" style="background-color: transparent;" onClick="return confirm('Are You Sure')"><i class="fa fa-solid fa-trash"></i></button>
-                                                        </form>
-                                                    </li>
-                                                </ul>
+                                            <td class="text-center">
+                                                <a href="{{ url('/inventory/edit/'.$inventory->id) }}"><i class="fa fa-solid fa-edit"></i></a>
                                             </td>
                                         </tr>
                                     @endforeach
