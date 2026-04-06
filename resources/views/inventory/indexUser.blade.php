@@ -49,11 +49,11 @@
                             <td>
                                 <div style="display: flex; gap: 5px;">
                                     <a href="{{ url('/inventory/edit/'.$inventory->id) }}" class="btn btn-sm btn-warning"><i class="fa fa-solid fa-edit"></i></a>
-                                    <form action="{{ url('/inventory/delete/'.$inventory->id) }}" method="post" class="d-inline">
+                                    <!-- <form action="{{ url('/inventory/delete/'.$inventory->id) }}" method="post" class="d-inline">
                                         @method('delete')
                                         @csrf
                                         <button class="btn btn-danger btn-sm btn-circle" style="width: 40px" onClick="return confirm('Are You Sure')"><i class="fa fa-solid fa-trash"></i></button>
-                                    </form>
+                                    </form> -->
                                 </div>
                             </td>
                         </tr>

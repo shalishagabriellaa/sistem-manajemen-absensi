@@ -471,14 +471,14 @@
                                                 <li class="edit">
                                                     <a href="{{ url('/pegawai/edit-shift/'.$sk->id) }}"><i class="fa fa-solid fa-edit"></i></a>
                                                 </li>
-                                                <li class="delete">
+                                                <!-- <li class="delete">
                                                     <form action="{{ url('/pegawai/delete-shift/'.$sk->id) }}" method="post" class="d-inline">
                                                         @method('delete')
                                                         @csrf
                                                         <input type="hidden" name="user_id" value="{{ $karyawan->id }}">
                                                         <button class="border-0" style="background-color: transparent;"  onClick="return confirm('Are You Sure')"><i class="fa fa-solid fa-trash"></i></button>
                                                     </form>
-                                                </li>
+                                                </li> -->
                                             </ul>
                                         </td>
                                     </tr>
