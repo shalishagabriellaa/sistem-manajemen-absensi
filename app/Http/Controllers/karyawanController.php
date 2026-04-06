@@ -192,54 +192,122 @@ class karyawanController extends Controller
     {
         $validatedData = $request->validate([
             'name' => 'required|max:255',
-            'email' => 'required|email:dns|unique:users',
+            'email' => 'required|email:dns|unique:users,email',
             'telepon' => 'required',
-            'foto_karyawan' => 'image|file|max:10240',
-            'username' => 'required|max:255|unique:users',
+            'foto_karyawan' => 'nullable|image|file|max:10240',
+            'username' => 'required|max:255|unique:users,username',
             'password' => 'required|min:6|max:255',
+
             'lokasi_id' => 'required',
-            'tgl_lahir' => 'required',
-            'tgl_join' => 'required',
+            'tgl_lahir' => 'required|date',
+            'tgl_join' => 'required|date',
+
             'gender' => 'required',
-            'status_nikah' => 'nullable',
+            'status_nikah' => 'required',
             'is_admin' => 'required',
+
             'status_pajak_id' => 'required',
             'jabatan_id' => 'required',
-            'ktp' => 'nullable',
-            'kartu_keluarga' => 'nullable',
-            'bpjs_kesehatan' => 'nullable',
-            'bpjs_ketenagakerjaan' => 'nullable',
-            'npwp' => 'nullable',
-            'sim' => 'nullable',
-            'no_pkwt' => 'nullable',
-            'no_kontrak' => 'nullable',
-            'tanggal_mulai_pkwt' => 'nullable',
-            'tanggal_berakhir_pkwt' => 'nullable',
-            'rekening' => 'nullable',
-            'nama_rekening' => 'nullable',
-            'alamat' => 'nullable',
-            'izin_cuti' => 'nullable',
-            'izin_lainnya' => 'nullable',
-            'izin_telat' => 'nullable',
-            'izin_pulang_cepat' => 'nullable',
-            'gaji_pokok' => 'nullable',
-            'tunjangan_makan' => 'nullable',
-            'tunjangan_transport' => 'nullable',
-            'tunjangan_bpjs_kesehatan' => 'nullable',
-            'tunjangan_bpjs_ketenagakerjaan' => 'nullable',
-            'lembur' => 'nullable',
-            'kehadiran' => 'nullable',
-            'thr' => 'nullable',
-            'bonus_pribadi' => 'nullable',
-            'bonus_team' => 'nullable',
-            'bonus_jackpot' => 'nullable',
-            'izin' => 'nullable',
-            'terlambat' => 'nullable',
-            'mangkir' => 'nullable',
-            'saldo_kasbon' => 'nullable',
-            'potongan_bpjs_kesehatan' => 'nullable',
-            'potongan_bpjs_ketenagakerjaan' => 'nullable',
-            'masa_berlaku' => 'nullable',
+
+            'ktp' => 'required',
+            'kartu_keluarga' => 'required',
+            'bpjs_kesehatan' => 'required',
+            'bpjs_ketenagakerjaan' => 'required',
+            'npwp' => 'required',
+
+            'sim' => 'required',
+
+            'no_pkwt' => 'required',
+            'no_kontrak' => 'required',
+
+            'tanggal_mulai_pkwt' => 'required|date',
+            'tanggal_berakhir_pkwt' => 'required|date',
+
+            'rekening' => 'required',
+            'nama_rekening' => 'required',
+
+            'alamat' => 'required',
+
+            'masa_berlaku' => 'required|date',
+
+            'gaji_pokok' => 'required',
+            'tunjangan_bpjs_kesehatan' => 'required',
+            'tunjangan_bpjs_ketenagakerjaan' => 'required',
+            'thr' => 'required',
+
+            'potongan_bpjs_kesehatan' => 'required',
+            'potongan_bpjs_ketenagakerjaan' => 'required',
+
+        ],[
+            'name.required' => 'Nama wajib diisi',
+            'name.max' => 'Nama maksimal 255 karakter',
+
+            'email.required' => 'Email wajib diisi',
+            'email.email' => 'Format email tidak valid',
+            'email.unique' => 'Email sudah digunakan',
+
+            'telepon.required' => 'Nomor handphone wajib diisi',
+
+            'username.required' => 'Username wajib diisi',
+            'username.unique' => 'Username sudah digunakan',
+
+            'password.required' => 'Password wajib diisi',
+            'password.min' => 'Password minimal 6 karakter',
+
+            'lokasi_id.required' => 'Lokasi kantor wajib dipilih',
+
+            'tgl_lahir.required' => 'Tanggal lahir wajib diisi',
+            'tgl_join.required' => 'Tanggal masuk perusahaan wajib diisi',
+
+            'gender.required' => 'Gender wajib dipilih',
+
+            'status_nikah.required' => 'Status pernikahan wajib dipilih',
+
+            'is_admin.required' => 'Dashboard role wajib dipilih',
+
+            'status_pajak_id.required' => 'Status pajak wajib dipilih',
+
+            'jabatan_id.required' => 'Divisi wajib dipilih',
+
+            'ktp.required' => 'Nomor KTP wajib diisi',
+
+            'kartu_keluarga.required' => 'Nomor kartu keluarga wajib diisi',
+
+            'bpjs_kesehatan.required' => 'Nomor BPJS kesehatan wajib diisi',
+
+            'bpjs_ketenagakerjaan.required' => 'Nomor BPJS ketenagakerjaan wajib diisi',
+
+            'npwp.required' => 'Nomor NPWP wajib diisi',
+
+            'sim.required' => 'Nomor SIM wajib diisi',
+
+            'no_pkwt.required' => 'Nomor PKWT wajib diisi',
+
+            'no_kontrak.required' => 'Nomor kontrak wajib diisi',
+
+            'tanggal_mulai_pkwt.required' => 'Tanggal mulai PKWT wajib diisi',
+
+            'tanggal_berakhir_pkwt.required' => 'Tanggal berakhir PKWT wajib diisi',
+
+            'rekening.required' => 'Nomor rekening wajib diisi',
+
+            'nama_rekening.required' => 'Nama pemilik rekening wajib diisi',
+
+            'alamat.required' => 'Alamat wajib diisi',
+
+            'masa_berlaku.required' => 'Masa berlaku kontrak wajib diisi',
+
+            'gaji_pokok.required' => 'Gaji pokok wajib diisi',
+
+            'tunjangan_bpjs_kesehatan.required' => 'Tunjangan BPJS kesehatan wajib diisi',
+
+            'tunjangan_bpjs_ketenagakerjaan.required' => 'Tunjangan BPJS ketenagakerjaan wajib diisi',
+
+            'thr.required' => 'THR wajib diisi',
+
+            'potongan_bpjs_kesehatan.required' => 'Potongan BPJS kesehatan wajib diisi',
+
+            'potongan_bpjs_ketenagakerjaan.required' => 'Potongan BPJS ketenagakerjaan wajib diisi',
         ]);
 
         $validatedData["izin_cuti"] = $request->izin_cuti ?? 0;

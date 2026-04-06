@@ -15,12 +15,24 @@
         </div>
         <div class="col-sm-12">
             <div class="card">
+                
+            @if ($errors->any())
+            <div class="alert alert-danger" id="form-error">
+                <b>Mohon perbaiki data berikut:</b>
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>⚠️ {{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
                 <form class="p-4" method="post" action="{{ url('/pegawai/tambah-pegawai-proses') }}" enctype="multipart/form-data">
                     @csrf
                     <div class="row">
                         <div class="col mb-4">
                             <label for="name">Nama Pegawai</label>
-                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" autofocus value="{{ old('name') }}">
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" required autofocus value="{{ old('name') }}">
                             @error('name')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -40,16 +52,16 @@
                     <div class="row">
                         <div class="col mb-4">
                             <label for="email">Email</label>
-                            <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}">
+                            <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" required value="{{ old('email') }}">
                             @error('email')
                             <div class="invalid-feedback">
                                 {{ $message }}
                             </div>
-                            @enderror
+                            @enderror 
                         </div>
                         <div class="col mb-4">
                             <label for="telepon">Nomor Handphone</label>
-                            <input type="number" class="form-control @error('telepon') is-invalid @enderror" id="telepon" name="telepon" value="{{ old('telepon') }}">
+                            <input type="number" class="form-control @error('telepon') is-invalid @enderror" id="telepon" name="telepon" required value="{{ old('telepon') }}">
                             @error('telepon')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -60,7 +72,7 @@
                     <div class="row">
                         <div class="col mb-4">
                             <label for="username">Username</label>
-                            <input type="text" class="form-control @error('username') is-invalid @enderror" id="username" name="username" value="{{ old('username') }}">
+                            <input type="text" class="form-control @error('username') is-invalid @enderror" id="username" name="username" required value="{{ old('username') }}">
                             @error('username')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -69,7 +81,7 @@
                         </div>
                         <div class="col mb-4">
                             <label for="password">Password</label>
-                            <input type="password" au class="form-control @error('password') is-invalid @enderror" id="password" name="password" value="{{ old('password') }}">
+                            <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" required value="{{ old('password') }}">
                             @error('password')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -98,7 +110,7 @@
                         </div>
                         <div class="col mb-4">
                             <label for="tgl_lahir">Tanggal Lahir</label>
-                            <input type="datetime" class="form-control @error('tgl_lahir') is-invalid @enderror" id="tgl_lahir" name="tgl_lahir" value="{{ old('tgl_lahir') }}">
+                            <input type="date" class="form-control @error('tgl_lahir') is-invalid @enderror" id="tgl_lahir" name="tgl_lahir" required value="{{ old('tgl_lahir') }}">
                             @error('tgl_lahir')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -109,7 +121,7 @@
                     <div class="row">
                         <div class="col mb-4">
                             <label for="tgl_join">Tanggal Masuk Perusahaan</label>
-                            <input type="datetime" class="form-control @error('tgl_join') is-invalid @enderror" id="tgl_join" name="tgl_join" value="{{ old('tgl_join') }}">
+                            <input type="date" class="form-control @error('tgl_join') is-invalid @enderror" id="tgl_join" name="tgl_join" required value="{{ old('tgl_join') }}">
                             @error('tgl_join')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -118,7 +130,7 @@
                         </div>
                         <div class="col mb-4">
                             <label for="masa_kerja">Masa Kerja</label>
-                            <input type="text" class="form-control @error('masa_kerja') is-invalid @enderror" id="masa_kerja" name="masa_kerja" value="{{ old('masa_kerja') }}" disabled>
+                            <input type="text" class="form-control @error('masa_kerja') is-invalid @enderror" id="masa_kerja" name="masa_kerja" required value="{{ old('masa_kerja') }}" disabled>
                             @error('masa_kerja')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -129,7 +141,7 @@
                     <div class="row">
                         <div class="col mb-4">
                             <label for="role" class="float-left">Role</label>
-                            <select class="form-control selectpicker @error('role') is-invalid @enderror" id="role" name="role[]" multiple>
+                            <select class="form-control selectpicker @error('role') is-invalid @enderror" id="role" name="role[]" required multiple>
                                 @foreach ($roles as $role)
                                     <option value="{{ $role->name }}" {{ (is_array(old('role')) && in_array($role->name, old('role'))) ? 'selected' : '' }}>
                                         {{ $role->name }}
@@ -149,7 +161,7 @@
                             ]);
                             ?>
                             <label for="gender">Gender</label>
-                            <select name="gender" id="gender" class="form-control @error('gender') is-invalid @enderror selectpicker" data-live-search="true">
+                            <select name="gender" id="gender" class="form-control @error('gender') is-invalid @enderror selectpicker" required data-live-search="true">
                                 <option value="">Pilih Gender</option>
                                 @foreach ($gender as $g)
                                     @if(old('gender') == $g["gender"])
@@ -195,7 +207,7 @@
                                         );
                                     @endphp
                                     <label for="status_nikah">Status Pernikahan</label>
-                                    <select name="status_nikah" id="status_nikah" class="form-control @error('status_nikah') is-invalid @enderror selectpicker" data-live-search="true">
+                                    <select name="status_nikah" id="status_nikah" class="form-control @error('status_nikah') is-invalid @enderror selectpicker" required data-live-search="true">
                                         <option value="">Pilih Status Pernikahan</option>
                                         @foreach ($sNikah as $s)
                                             @if(old('status_nikah') == $s["status"])
@@ -223,7 +235,7 @@
                                     ]);
                                     ?>
                                     <label for="is_admin">Dashboard</label>
-                                    <select name="is_admin" id="is_admin" class="form-control @error('is_admin') is-invalid @enderror selectpicker" data-live-search="true">
+                                    <select name="is_admin" id="is_admin" class="form-control @error('is_admin') is-invalid @enderror selectpicker" required data-live-search="true">
                                         <option value="">Pilih Dashboard</option>
                                         @foreach ($is_admin as $a)
                                             @if(old('is_admin') == $a["is_admin"])
@@ -243,7 +255,7 @@
                     <div class="row">
                         <div class="col mb-4">
                             <label for="status_pajak_id">Status Pajak</label>
-                            <select name="status_pajak_id" id="status_pajak_id" class="form-control @error('status_pajak_id') is-invalid @enderror selectpicker" data-live-search="true">
+                            <select name="status_pajak_id" id="status_pajak_id" class="form-control @error('status_pajak_id') is-invalid @enderror selectpicker" required data-live-search="true">
                                 <option value="">Pilih Status</option>
                                 @foreach ($status_pajak as $pajak)
                                     @if(old('status_pajak_id') == $pajak->id)
@@ -261,7 +273,7 @@
                         </div>
                         <div class="col mb-4">
                             <label for="jabatan_id">Divisi</label>
-                            <select name="jabatan_id" id="jabatan_id" class="form-control @error('jabatan_id') is-invalid @enderror selectpicker" data-live-search="true">
+                            <select name="jabatan_id" id="jabatan_id" class="form-control @error('jabatan_id') is-invalid @enderror selectpicker" required data-live-search="true">
                                 <option value="">Pilih Divisi</option>
                                 @foreach ($data_jabatan as $dj)
                                     @if(old('jabatan_id') == $dj->id)
@@ -281,7 +293,7 @@
                     <div class="row">
                         <div class="col mb-4">
                             <label for="ktp">Nomor KTP</label>
-                            <input type="number" class="form-control @error('ktp') is-invalid @enderror" id="ktp" name="ktp" value="{{ old('ktp') }}">
+                            <input type="number" class="form-control @error('ktp') is-invalid @enderror" id="ktp" name="ktp" required value="{{ old('ktp') }}">
                             @error('ktp')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -290,7 +302,7 @@
                         </div>
                         <div class="col mb-4">
                             <label for="kartu_keluarga">Nomor Kartu Keluarga</label>
-                            <input type="number" class="form-control @error('kartu_keluarga') is-invalid @enderror" id="kartu_keluarga" name="kartu_keluarga" value="{{ old('kartu_keluarga') }}">
+                            <input type="number" class="form-control @error('kartu_keluarga') is-invalid @enderror" id="kartu_keluarga" name="kartu_keluarga" required value="{{ old('kartu_keluarga') }}">
                             @error('kartu_keluarga')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -301,7 +313,7 @@
                     <div class="row">
                         <div class="col mb-4">
                             <label for="bpjs_kesehatan">Nomor BPJS Kesehatan</label>
-                            <input type="number" class="form-control @error('bpjs_kesehatan') is-invalid @enderror" id="bpjs_kesehatan" name="bpjs_kesehatan" value="{{ old('bpjs_kesehatan') }}">
+                            <input type="number" class="form-control @error('bpjs_kesehatan') is-invalid @enderror" id="bpjs_kesehatan" name="bpjs_kesehatan" required value="{{ old('bpjs_kesehatan') }}">
                             @error('bpjs_kesehatan')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -310,7 +322,7 @@
                         </div>
                         <div class="col mb-4">
                             <label for="bpjs_ketenagakerjaan">Nomor BPJS Ketenagakerjaan</label>
-                            <input type="number" class="form-control @error('bpjs_ketenagakerjaan') is-invalid @enderror" id="bpjs_ketenagakerjaan" name="bpjs_ketenagakerjaan" value="{{ old('bpjs_ketenagakerjaan') }}">
+                            <input type="number" class="form-control @error('bpjs_ketenagakerjaan') is-invalid @enderror" id="bpjs_ketenagakerjaan" name="bpjs_ketenagakerjaan" required value="{{ old('bpjs_ketenagakerjaan') }}">
                             @error('bpjs_ketenagakerjaan')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -321,7 +333,7 @@
                     <div class="row">
                         <div class="col mb-4">
                             <label for="npwp">Nomor NPWP</label>
-                            <input type="number" class="form-control @error('npwp') is-invalid @enderror" id="npwp" name="npwp" value="{{ old('npwp') }}">
+                            <input type="number" class="form-control @error('npwp') is-invalid @enderror" id="npwp" name="npwp" required value="{{ old('npwp') }}">
                             @error('npwp')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -330,7 +342,7 @@
                         </div>
                         <div class="col mb-4">
                             <label for="sim">Nomor SIM</label>
-                            <input type="number" class="form-control @error('sim') is-invalid @enderror" id="sim" name="sim" value="{{ old('sim') }}">
+                            <input type="number" class="form-control @error('sim') is-invalid @enderror" id="sim" name="sim" required value="{{ old('sim') }}">
                             @error('sim')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -341,7 +353,7 @@
                     <div class="row">
                         <div class="col mb-4">
                             <label for="no_pkwt">Nomor PKWT</label>
-                            <input type="number" class="form-control @error('no_pkwt') is-invalid @enderror" id="no_pkwt" name="no_pkwt" value="{{ old('no_pkwt') }}">
+                            <input type="number" class="form-control @error('no_pkwt') is-invalid @enderror" id="no_pkwt" name="no_pkwt" required value="{{ old('no_pkwt') }}">
                             @error('no_pkwt')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -350,7 +362,7 @@
                         </div>
                         <div class="col mb-4">
                             <label for="no_kontrak">Nomor Kontrak</label>
-                            <input type="number" class="form-control @error('no_kontrak') is-invalid @enderror" id="no_kontrak" name="no_kontrak" value="{{ old('no_kontrak') }}">
+                            <input type="number" class="form-control @error('no_kontrak') is-invalid @enderror" id="no_kontrak" name="no_kontrak" required value="{{ old('no_kontrak') }}">
                             @error('no_kontrak')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -361,7 +373,7 @@
                     <div class="row">
                         <div class="col mb-4">
                             <label for="tanggal_mulai_pkwt">Tanggal Mulai PKWT</label>
-                            <input type="datetime" class="form-control @error('tanggal_mulai_pkwt') is-invalid @enderror" id="tanggal_mulai_pkwt" name="tanggal_mulai_pkwt" value="{{ old('tanggal_mulai_pkwt') }}">
+                            <input type="date" class="form-control @error('tanggal_mulai_pkwt') is-invalid @enderror" id="tanggal_mulai_pkwt" name="tanggal_mulai_pkwt" required value="{{ old('tanggal_mulai_pkwt') }}">
                             @error('tanggal_mulai_pkwt')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -370,7 +382,7 @@
                         </div>
                         <div class="col mb-4">
                             <label for="tanggal_berakhir_pkwt">Tanggal Berakhir PKWT</label>
-                            <input type="datetime" class="form-control @error('tanggal_berakhir_pkwt') is-invalid @enderror" id="tanggal_berakhir_pkwt" name="tanggal_berakhir_pkwt" value="{{ old('tanggal_berakhir_pkwt') }}">
+                            <input type="date" class="form-control @error('tanggal_berakhir_pkwt') is-invalid @enderror" id="tanggal_berakhir_pkwt" name="tanggal_berakhir_pkwt" required value="{{ old('tanggal_berakhir_pkwt') }}">
                             @error('tanggal_berakhir_pkwt')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -381,7 +393,7 @@
                     <div class="row">
                         <div class="col mb-4">
                             <label for="rekening">Nomor Rekening</label>
-                            <input type="number" class="form-control @error('rekening') is-invalid @enderror" id="rekening" name="rekening" value="{{ old('rekening') }}">
+                            <input type="number" class="form-control @error('rekening') is-invalid @enderror" id="rekening" name="rekening" required value="{{ old('rekening') }}">
                             @error('rekening')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -390,7 +402,7 @@
                         </div>
                         <div class="col mb-4">
                             <label for="nama_rekening">Nama Pemilik Rekening</label>
-                            <input type="text" class="form-control @error('nama_rekening') is-invalid @enderror" id="nama_rekening" name="nama_rekening" value="{{ old('nama_rekening') }}">
+                            <input type="text" class="form-control @error('nama_rekening') is-invalid @enderror" id="nama_rekening" name="nama_rekening" required value="{{ old('nama_rekening') }}">
                             @error('nama_rekening')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -401,7 +413,7 @@
                     <div class="row">
                         <div class="col mb-4">
                             <label for="alamat">Alamat</label>
-                            <textarea name="alamat" id="alamat" class="form-control @error('alamat') is-invalid @enderror">{{ old('alamat') }}</textarea>
+                            <textarea name="alamat" id="alamat" class="form-control @error('alamat') is-invalid @enderror" required>{{ old('alamat') }}</textarea>
                             @error('alamat')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -410,7 +422,7 @@
                         </div>
                         <div class="col mb-4">
                             <label for="masa_berlaku">Masa Berlaku</label>
-                            <input type="datetime" class="form-control @error('masa_berlaku') is-invalid @enderror" id="masa_berlaku" name="masa_berlaku" value="{{ old('masa_berlaku') }}">
+                            <input type="date" class="form-control @error('masa_berlaku') is-invalid @enderror" id="masa_berlaku" name="masa_berlaku" required value="{{ old('masa_berlaku') }}">
                             @error('masa_berlaku')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -468,7 +480,7 @@
                         <div class="col mb-4">
                             <label for="gaji_pokok">Gaji Pokok</label>
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control money @error('gaji_pokok') is-invalid @enderror" name="gaji_pokok" value="{{ old('gaji_pokok') }}">
+                                <input type="text" class="form-control money @error('gaji_pokok') is-invalid @enderror" name="gaji_pokok" required value="{{ old('gaji_pokok') }}">
                                 <div class="input-group-text">
                                     <span>/ Bulan</span>
                                 </div>
@@ -514,7 +526,7 @@
                         <div class="col mb-4">
                             <label for="tunjangan_bpjs_kesehatan">Tunjangan BPJS Kesehatan</label>
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control money @error('tunjangan_bpjs_kesehatan') is-invalid @enderror" name="tunjangan_bpjs_kesehatan" value="{{ old('tunjangan_bpjs_kesehatan') }}">
+                                <input type="text" class="form-control money @error('tunjangan_bpjs_kesehatan') is-invalid @enderror" name="tunjangan_bpjs_kesehatan" required value="{{ old('tunjangan_bpjs_kesehatan') }}">
                                 <div class="input-group-text">
                                     <span>/ Bulan</span>
                                 </div>
@@ -528,7 +540,7 @@
                         <div class="col mb-4">
                             <label for="tunjangan_bpjs_ketenagakerjaan">Tunjangan BPJS Ketenagakerjaan</label>
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control money @error('tunjangan_bpjs_ketenagakerjaan') is-invalid @enderror" name="tunjangan_bpjs_ketenagakerjaan" value="{{ old('tunjangan_bpjs_ketenagakerjaan') }}">
+                                <input type="text" class="form-control money @error('tunjangan_bpjs_ketenagakerjaan') is-invalid @enderror" name="tunjangan_bpjs_ketenagakerjaan" required value="{{ old('tunjangan_bpjs_ketenagakerjaan') }}">
                                 <div class="input-group-text">
                                     <span>/ Bulan</span>
                                 </div>
@@ -574,7 +586,7 @@
                         <div class="col mb-4">
                             <label for="thr">THR</label>
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control money @error('thr') is-invalid @enderror" name="thr" value="{{ old('thr') }}">
+                                <input type="text" class="form-control money @error('thr') is-invalid @enderror" name="thr" required value="{{ old('thr') }}">
                                 <div class="input-group-text">
                                     <span>/ Bulan</span>
                                 </div>
@@ -697,7 +709,7 @@
                         <div class="col mb-4">
                             <label for="potongan_bpjs_kesehatan">Potongan BPJS Kesehatan</label>
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control money @error('potongan_bpjs_kesehatan') is-invalid @enderror" name="potongan_bpjs_kesehatan" value="{{ old('potongan_bpjs_kesehatan') }}">
+                                <input type="text" class="form-control money @error('potongan_bpjs_kesehatan') is-invalid @enderror" name="potongan_bpjs_kesehatan" required value="{{ old('potongan_bpjs_kesehatan') }}">
                                 <div class="input-group-text">
                                     <span>/ Bulan</span>
                                 </div>
@@ -711,7 +723,7 @@
                         <div class="col mb-4">
                             <label for="potongan_bpjs_ketenagakerjaan">Potongan BPJS Ketenagakerjaan</label>
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control money @error('potongan_bpjs_ketenagakerjaan') is-invalid @enderror" name="potongan_bpjs_ketenagakerjaan" value="{{ old('potongan_bpjs_ketenagakerjaan') }}">
+                                <input type="text" class="form-control money @error('potongan_bpjs_ketenagakerjaan') is-invalid @enderror" name="potongan_bpjs_ketenagakerjaan" required value="{{ old('potongan_bpjs_ketenagakerjaan') }}">
                                 <div class="input-group-text">
                                     <span>/ Bulan</span>
                                 </div>
@@ -728,42 +740,150 @@
             </div>
         </div>
     </div>
-    @push('script')
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>
-        <script>
-            $('.money').mask('000,000,000,000,000', {
-                reverse: true
-            });
 
-            $('body').on('change', '#tgl_join', function(event) {
-                let tgl_join = new Date($('#tgl_join').val());
-                let now_utc = new Date();
-                let timezone = 7 * 60 * 60 * 1000;
-                let now_date = new Date(now_utc.getTime() + timezone);
+@push('script')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>
+<script>
+    $('.money').mask('000,000,000,000,000', { reverse: true });
+ 
+    $('body').on('change', '#tgl_join', function () {
+        let value = $('#tgl_join').val();
+        if (!value) return;
+        let tgl_join = new Date(value);
+        let now_date = new Date(new Date().getTime() + 7 * 60 * 60 * 1000);
+        let diffday  = Math.floor((now_date - tgl_join) / (1000 * 60 * 60 * 24));
+        let year  = Math.max(0, Math.floor(diffday / 365));
+        let month = Math.max(0, Math.floor((diffday % 365) / 30));
+        let day   = Math.max(0, (diffday % 365) % 30);
+        $('#masa_kerja').val(year + ' Tahun, ' + month + ' Bulan, ' + day + ' Hari.');
+    });
+ 
+    const fieldRules = [
+        { name: 'name',                           label: 'Nama Pegawai',                   type: 'text' },
+        { name: 'email',                          label: 'Email',                           type: 'email' },
+        { name: 'telepon',                        label: 'Nomor Handphone',                 type: 'text' },
+        { name: 'username',                       label: 'Username',                        type: 'text' },
+        { name: 'password',                       label: 'Password',                        type: 'password', min: 6 },
+        { name: 'lokasi_id',                      label: 'Lokasi Kantor',                   type: 'select' },
+        { name: 'tgl_lahir',                      label: 'Tanggal Lahir',                   type: 'text' },
+        { name: 'tgl_join',                       label: 'Tanggal Masuk Perusahaan',        type: 'text' },
+        { name: 'masa_berlaku',                   label: 'Masa Berlaku',                    type: 'text' },
+        { name: 'role[]',                         label: 'Role',                            type: 'multiselect' },
+        { name: 'gender',                         label: 'Gender',                          type: 'select' },
+        { name: 'status_nikah',                   label: 'Status Pernikahan',               type: 'select' },
+        { name: 'is_admin',                       label: 'Dashboard',                       type: 'select' },
+        { name: 'status_pajak_id',                label: 'Status Pajak',                    type: 'select' },
+        { name: 'jabatan_id',                     label: 'Divisi',                          type: 'select' },
+        { name: 'ktp',                            label: 'Nomor KTP',                       type: 'text' },
+        { name: 'kartu_keluarga',                 label: 'Nomor Kartu Keluarga',            type: 'text' },
+        { name: 'bpjs_kesehatan',                 label: 'Nomor BPJS Kesehatan',            type: 'text' },
+        { name: 'bpjs_ketenagakerjaan',           label: 'Nomor BPJS Ketenagakerjaan',      type: 'text' },
+        { name: 'npwp',                           label: 'Nomor NPWP',                      type: 'text' },
+        { name: 'sim',                            label: 'Nomor SIM',                       type: 'text' },
+        { name: 'no_pkwt',                        label: 'Nomor PKWT',                      type: 'text' },
+        { name: 'no_kontrak',                     label: 'Nomor Kontrak',                   type: 'text' },
+        { name: 'tanggal_mulai_pkwt',             label: 'Tanggal Mulai PKWT',              type: 'text' },
+        { name: 'tanggal_berakhir_pkwt',          label: 'Tanggal Berakhir PKWT',           type: 'text' },
+        { name: 'rekening',                       label: 'Nomor Rekening',                  type: 'text' },
+        { name: 'nama_rekening',                  label: 'Nama Pemilik Rekening',           type: 'text' },
+        { name: 'alamat',                         label: 'Alamat',                          type: 'textarea' },
+        { name: 'gaji_pokok',                     label: 'Gaji Pokok',                      type: 'money' },
+        { name: 'tunjangan_bpjs_kesehatan',       label: 'Tunjangan BPJS Kesehatan',        type: 'money' },
+        { name: 'tunjangan_bpjs_ketenagakerjaan', label: 'Tunjangan BPJS Ketenagakerjaan',  type: 'money' },
+        { name: 'thr',                            label: 'THR',                             type: 'money' },
+        { name: 'potongan_bpjs_kesehatan',        label: 'Potongan BPJS Kesehatan',         type: 'money' },
+        { name: 'potongan_bpjs_ketenagakerjaan',  label: 'Potongan BPJS Ketenagakerjaan',   type: 'money' },
+    ];
+ 
+    function getFieldValue(rule) {
+        if (rule.type === 'multiselect') {
+            const val = $('select[name="' + rule.name + '"]').val();
+            return (val && val.length > 0) ? val : null;
+        }
+        return $('[name="' + rule.name + '"]').val();
+    }
+ 
+    function validateField(rule) {
+        const val = getFieldValue(rule);
+        const isEmpty = val === null || val === undefined || val.toString().trim() === '';
+ 
+        if (isEmpty) return rule.label + ' wajib diisi';
+ 
+        if (rule.type === 'email') {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim()))
+                return 'Format email tidak valid';
+        }
+ 
+        if (rule.type === 'password' && rule.min && val.length < rule.min)
+            return rule.label + ' minimal ' + rule.min + ' karakter';
+ 
+        return null;
+    }
+ 
+    function showFieldError(rule, message) {
+        const el = $('[name="' + rule.name + '"]');
+        if (!el.length) return;
+ 
+        el.addClass('is-invalid');
+ 
+        // Hapus feedback lama
+        el.siblings('.js-feedback').remove();
+        el.closest('.input-group').next('.js-feedback').remove();
+ 
+        const html = '<div class="js-feedback" style="color:#dc3545;font-size:0.82em;margin-top:4px;">&#9888; ' + message + '</div>';
+ 
+        if (el.closest('.input-group').length) {
+            el.closest('.input-group').next('.js-feedback').remove();
+            el.closest('.input-group').after(html);
+        } else {
+            el.after(html);
+        }
+    }
+ 
+    function clearFieldError(rule) {
+        const el = $('[name="' + rule.name + '"]');
+        if (!el.length) return;
+        el.removeClass('is-invalid');
+        el.siblings('.js-feedback').remove();
+        el.closest('.input-group').next('.js-feedback').remove();
+    }
+ 
+    // Real-time: blur + change
+    fieldRules.forEach(function (rule) {
+        $(document).on('blur change', '[name="' + rule.name + '"]', function () {
+            const err = validateField(rule);
+            err ? showFieldError(rule, err) : clearFieldError(rule);
+        });
+    });
+ 
+    // Validasi saat submit
+    $('form').on('submit', function (e) {
+        let firstErrorEl = null;
+        let hasError = false;
+ 
+        fieldRules.forEach(function (rule) {
+            const err = validateField(rule);
+            if (err) {
+                showFieldError(rule, err);
+                hasError = true;
+                if (!firstErrorEl) firstErrorEl = $('[name="' + rule.name + '"]')[0];
+            } else {
+                clearFieldError(rule);
+            }
+        });
+ 
+        if (hasError) {
+            e.preventDefault();
+            if (firstErrorEl) firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+ 
+    // Scroll ke error Laravel kalau ada
+    document.addEventListener('DOMContentLoaded', function () {
+        const el = document.getElementById('form-error');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+</script>
+@endpush
 
-                let difference = now_date - tgl_join;
-
-                let oneday = 1000 * 60 * 60 * 24;
-                let differenceday = Math.floor(difference / oneday);
-
-                let year = Math.floor(differenceday / 365);
-                let month = Math.floor((differenceday % 365) / 30);
-                let day = (differenceday % 365) % 30;
-
-                if (year < 0) {
-                    year = 0;
-                }
-
-                if (month < 0) {
-                    month = 0;
-                }
-
-                if (day < 0) {
-                    day = 0;
-                }
-
-                $('#masa_kerja').val(year + ' Tahun, ' + month + ' Bulan, ' + day + ' Hari.');
-            });
-        </script>
-    @endpush
 @endsection
