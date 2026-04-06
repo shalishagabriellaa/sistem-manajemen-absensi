@@ -548,7 +548,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Jabatan::create([
-            'nama_jabatan' => 'Keuangan dan Akutansi'
+            'nama_jabatan' => 'Keuangan dan Akuntansi'
         ]);
 
         Jabatan::create([

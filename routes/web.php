@@ -402,6 +402,13 @@ Route::post('/inventory/store', [InventoryController::class, 'store'])->middlewa
 Route::get('/inventory/edit/{id}', [InventoryController::class, 'edit'])->middleware('auth');
 Route::put('/inventory/update/{id}', [InventoryController::class, 'update'])->middleware('auth');
 Route::delete('/inventory/delete/{id}', [InventoryController::class, 'delete'])->middleware('auth');
+Route::post('/inventory/import', [InventoryController::class, 'import'])->middleware('auth');
+Route::get('/inventory/download-template', function () {
+    $file = public_path('templates/inventory_metech_template.xlsx');
+
+    return response()->download($file, 'Template_Inventory_Metech.xlsx');
+});
+Route::get('/inventory/export',[InventoryController::class,'export']);
 
 Route::get('/patroli', [PatroliController::class, 'index'])->middleware('auth');
 Route::post('/patroli/store', [PatroliController::class, 'store'])->middleware('auth');
