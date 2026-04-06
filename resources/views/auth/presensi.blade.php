@@ -297,6 +297,11 @@
             <input type="hidden" name="lat" id="lat">
             <input type="hidden" name="long" id="long">
             
+            <button type="button" class="clean-btn" id="captureBtn" style="background: linear-gradient(135deg,#10b981,#059669);">
+                <i class="fas fa-camera" style="margin-right:0.375rem;"></i>
+                Ambil Foto & Absen
+            </button>
+            
             <a href="{{ url('/') }}" class="clean-btn">
                 <i class="fas fa-arrow-left" style="margin-right: 0.375rem;"></i>
                 Kembali ke Login
@@ -381,6 +386,8 @@
             let video = document.getElementById("video");
             let canvas = document.createElement("canvas");
             let ctx = canvas.getContext("2d");
+
+            let isProcessing = false;
             
             // Append canvas to video container instead of body
             document.querySelector('.video-container').appendChild(canvas);
@@ -490,7 +497,8 @@
                         let label = result.label;
                         let distance = result.distance;
                         
-                        if (label !== "unknown" && distance < 0.6) { // Increased distance threshold for better recognition
+                        if (label !== "unknown" && distance < 0.6 && !isProcessing) {
+                            isProcessing = true; // Increased distance threshold for better recognition
                             updateStatus('Wajah dikenali! Memproses absen...', 'processing');
                             showLoading();
 
@@ -519,6 +527,7 @@
                                 cache: false,
                                 success: function(msg) {
                                     hideLoading();
+                                    // isProcessing = false;
                                     let message = '';
                                     let icon = '';
                                     switch (msg) {
@@ -574,6 +583,96 @@
 
                 setTimeout(() => onPlay(), 500); // Reduced interval for more responsive detection
             }
+
+            document.getElementById("captureBtn").addEventListener("click", async function () {
+
+                if(isProcessing) return;
+                isProcessing = true;
+
+                if (!faceMatcher) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Sistem belum siap',
+                        text: 'Model wajah masih dimuat'
+                    });
+                    return;
+                }
+
+                updateStatus('Memproses foto...', 'processing');
+                showLoading();
+
+                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceDescriptors();
+
+                if (detections.length === 0) {
+                    hideLoading();
+                    updateStatus('Wajah tidak terdeteksi', 'error');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Wajah tidak terdeteksi',
+                        text: 'Pastikan wajah terlihat jelas'
+                    });
+                    return;
+                }
+
+                const result = faceMatcher.findBestMatch(detections[0].descriptor);
+                let label = result.label;
+
+                if (label === "unknown") {
+                    hideLoading();
+                    updateStatus('Wajah tidak dikenal', 'error');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Wajah tidak dikenali'
+                    });
+                    return;
+                }
+
+                // capture frame dari video
+                var canvas2 = document.createElement('canvas');
+                canvas2.width = 600;
+                canvas2.height = 600;
+                var ctx2 = canvas2.getContext('2d');
+                ctx2.drawImage(video, 0, 0, 600, 600);
+
+                var image = canvas2.toDataURL();
+
+                let lat = $('#lat').val();
+                let long = $('#long').val();
+
+                $.ajax({
+                    type: 'POST',
+                    url: "{{ url('/presensi/store') }}",
+                    data: {
+                        username: label,
+                        image: image,
+                        lat: lat,
+                        long: long,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(msg) {
+                        hideLoading();
+                        isProcessing = false;
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Absen berhasil',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        updateStatus('Absen berhasil!', 'success');
+                    },
+                    error: function() {
+                        hideLoading();
+                        isProcessing = false;
+                        updateStatus('Terjadi kesalahan', 'error');
+                    }
+                });
+
+            });
+
         </script>
     @endpush
 @endsection

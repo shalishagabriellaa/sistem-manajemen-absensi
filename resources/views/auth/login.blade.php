@@ -227,8 +227,9 @@ html, body {
 }
 
 .ip-brand-name {
-    font-size: 1.0625rem; font-weight: 800;
-    color: white; letter-spacing:-.015em; line-height:1.2;
+    font-size: .80rem;
+    font-weight: 800;
+    white-space: nowrap;
 }
 
 .ip-brand-sub {
@@ -525,6 +526,19 @@ html, body {
 .fp-footer-text { font-size:.6875rem; color:var(--slate-400); line-height:1.4; }
 .fp-footer-text strong { color:var(--slate-600); font-weight:600; }
 
+.brand-stack{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:.6rem;
+}
+
+.brand-logo{
+    width:190px;
+    margin-top:10px;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,.35));
+}
+
 /* ══════════════════════════════
    RESPONSIVE
 ══════════════════════════════ */
@@ -579,10 +593,13 @@ html, body {
         <div class="info-panel">
 
             {{-- Brand --}}
-            <div class="ip-brand">
-                <div>
-                    <div class="ip-brand-name"><h2>Metech</h2></div>
-                    <!-- <div class="ip-brand-sub">Human Resource System</div> -->
+            <br><br><div class="ip-brand">
+                <div class="brand-stack">
+                    <div class="ip-brand-name">PT Multi Engineering Technologies</div>
+
+                    <img src="{{ asset('assets/img/logo-metech.png') }}" 
+                        class="brand-logo"
+                        alt="Metech Logo">
                 </div>
             </div>
 
