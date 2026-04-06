@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Kasbon;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Notifications\KasbonNotification; 
 
 class KasbonController extends Controller
 {
@@ -61,20 +62,26 @@ class KasbonController extends Controller
     }
     
     public function tambahProses(Request $request)
-    {
-        $validated = $request->validate([
-            'user_id' => 'required',
-            'tanggal' => 'required',
-            'nominal' => 'required',
-            'keperluan' => 'required',
-            'status' => 'required',
-        ]);
+{
+    $validated = $request->validate([
+        'user_id'  => 'required',
+        'tanggal'  => 'required',
+        'nominal'  => 'required',
+        'keperluan'=> 'required',
+        'status'   => 'required',
+    ]);
 
-        $validated['nominal'] = str_replace(',', '', $validated['nominal']);
+    $validated['nominal'] = str_replace(',', '', $validated['nominal']);
 
-        Kasbon::create($validated);
-        return redirect('/kasbon')->with('success', 'Data Berhasil Ditambahkan');
+    $kasbon = Kasbon::create($validated); // ← simpan ke variabel
+
+    $admins = User::where('is_admin', 'admin')->get();
+    foreach ($admins as $admin) {
+        $admin->notify(new KasbonNotification($kasbon)); // ← sekarang $kasbon tersedia
     }
+
+    return redirect('/kasbon')->with('success', 'Data Berhasil Ditambahkan');
+}
 
     public function edit($id)
     {

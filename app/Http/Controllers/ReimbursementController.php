@@ -7,6 +7,7 @@ use App\Models\Kategori;
 use Illuminate\Http\Request;
 use App\Models\Reimbursement;
 use App\Models\ReimbursementsItem;
+use App\Notifications\ReimbursementNotification; 
 
 class ReimbursementController extends Controller
 {
@@ -98,6 +99,12 @@ class ReimbursementController extends Controller
                 'fee' => $fee[$i] ? str_replace(',', '', $fee[$i]) : 0,
             ]);
         }
+
+          // Kirim notifikasi ke semua admin
+            $admins = User::where('is_admin', 'admin')->get();
+    foreach ($admins as $admin) {
+        $admin->notify(new ReimbursementNotification($reimbursement));
+    }
 
         return redirect('/reimbursement')->with('success', 'Data Berhasil Disimpan');
     }
