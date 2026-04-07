@@ -20,7 +20,7 @@
 
                     <div class="row">
                         <div class="col group-input">
-                            <label for="jenis_barang">Jenis Barang <span class="text-muted small">(Opsional)</span></label>
+                            <br> <label for="jenis_barang">Jenis Barang <span class="text-muted small">(Opsional)</span></label>
                             <select class="@error('jenis_barang') is-invalid @enderror"
                                     id="jenis_barang" name="jenis_barang">
                                 <option value="">-- Pilih Jenis --</option>
@@ -36,7 +36,7 @@
                             @enderror
                         </div>
                         <div class="col group-input">
-                            <label for="merek">Merek <span class="text-muted small">(Opsional)</span></label>
+                            <br><label for="merek">Merek <span class="text-muted small">(Opsional)</span></label>
                             <input type="text"
                                    class="@error('merek') is-invalid @enderror"
                                    id="merek" name="merek"

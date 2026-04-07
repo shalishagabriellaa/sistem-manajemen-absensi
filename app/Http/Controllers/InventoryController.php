@@ -9,28 +9,39 @@ use App\Models\Inventory;
 use App\Imports\InventoryImport;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\InventoryExport;
 
 class InventoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $title = 'Inventory';
-        $search = request()->input('search');
-        $inventories = Inventory::when($search, function ($query) use ($search) {
-                                    $query->where('nama_barang', 'LIKE', '%' . $search . '%')
-                                          ->orWhere('kode_barang', 'LIKE', '%' . $search . '%');
-                                })
-                                ->when(auth()->user()->is_admin !== 'admin', function ($query) {
-                                    $query->where('jabatan_id', auth()->user()->jabatan_id);
-                                })
-                                ->orderBy('id', 'DESC')
-                                ->paginate(10)
-                                ->withQueryString();
+        $search = $request->search;
 
-        return view(auth()->user()->is_admin == 'admin' ? 'inventory.index' : 'inventory.indexUser', compact(
-            'title',
-            'inventories'
-        ));
+        $inventories = Inventory::with(['lokasi','jabatan'])
+            ->when($search, function ($query) use ($search) {
+                $query->where('kode_barang', 'like', "%{$search}%")
+                    ->orWhere('jenis_barang', 'like', "%{$search}%")
+                    ->orWhere('merek', 'like', "%{$search}%")
+                    ->orWhere('nama_barang', 'like', "%{$search}%")
+                    ->orWhere('uom', 'like', "%{$search}%")
+                    ->orWhere('desc', 'like', "%{$search}%");
+            });
+
+        // Batasi data user biasa hanya milik jabatan mereka
+        if (auth()->user()->is_admin !== 'admin') {
+            $inventories->where('jabatan_id', auth()->user()->jabatan_id);
+        }
+
+        $inventories = $inventories->paginate(10)->withQueryString();
+
+        $viewName = auth()->user()->is_admin === 'admin'
+            ? 'inventory.index'
+            : 'inventory.indexUser';
+
+        return view($viewName, [
+            'title'       => 'Data Inventory',
+            'inventories' => $inventories,
+        ]);
     }
 
     public function tambah()
@@ -84,7 +95,11 @@ class InventoryController extends Controller
 
     public function export()
     {
-        return Excel::download(new InventoryExport, 'inventory.xlsx');
+        $jabatanId = auth()->user()->is_admin === 'admin'
+            ? null
+            : auth()->user()->jabatan_id;
+
+        return Excel::download(new InventoryExport($jabatanId), 'inventory.xlsx');
     }
 
     public function update(Request $request, $id)

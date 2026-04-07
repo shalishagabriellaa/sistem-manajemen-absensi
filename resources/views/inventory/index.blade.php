@@ -1,23 +1,43 @@
 @extends('templates.dashboard')
 @section('isi')
     <div class="row">
-        <div class="col-md-12 project-list">
-            <div class="card">
-                <div class="row">
-                    <div class="col-md-6 mt-2 p-0 d-flex">
-                        <h4>{{ $title }}</h4>
-                    </div>
-                    <div class="col-md-6 p-0 d-flex justify-content-end gap-2 flex-wrap">
-                        <a href="{{ url('/inventory/download-template') }}" class="btn btn-success btn-sm">
-                            <i class="fas fa-download"></i> Template Excel
-                        </a>
-                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalImport">
-                            <i class="fas fa-file-excel"></i> Import Excel
-                        </button>
-                        <a href="{{ url('/inventory/tambah') }}" class="btn btn-primary btn-sm">+ Tambah</a>
-                    </div>
+        <div class="col-12 project-list">
+    <div class="card">
+        <div class="card-body">
+
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+
+                <!-- Title -->
+                <h4 class="mb-0 fw-semibold">
+                    {{ $title }}
+                </h4>
+
+                <!-- Buttons -->
+                <div class="d-flex flex-wrap gap-2">
+
+                    <a href="{{ url('/inventory/download-template') }}" class="btn btn-success btn-sm">
+                        <i class="fas fa-download me-1"></i> Template
+                    </a>
+
+                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalImport">
+                        <i class="fas fa-file-excel me-1"></i> Import
+                    </button>
+
+                    <a href="{{ url('/inventory/export') }}" class="btn btn-success btn-sm">
+                        <i class="fas fa-file-export me-1"></i> Export
+                    </a>
+
+                    <a href="{{ url('/inventory/tambah') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i> Tambah
+                    </a>
+
                 </div>
+
             </div>
+
+        </div>
+    </div>
+</div>
         </div>
 
         <div class="col-md-12">
