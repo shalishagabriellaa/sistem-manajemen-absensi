@@ -203,6 +203,8 @@ DROP TABLE IF EXISTS `inventories`;
 CREATE TABLE `inventories`  (
   `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
   `kode_barang` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `jenis_barang` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `merek` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `nama_barang` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `stok` double(8, 2) NULL DEFAULT NULL,
   `uom` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
@@ -237,7 +239,7 @@ CREATE TABLE `jabatans`  (
 -- Records of jabatans
 -- ----------------------------
 INSERT INTO `jabatans` VALUES (1, 'Teknologi Informasi', 1, '2026-01-05 10:10:07', '2026-01-05 10:10:07');
-INSERT INTO `jabatans` VALUES (2, 'Keuangan dan Akutansi', NULL, '2026-01-05 10:10:07', '2026-01-05 10:10:07');
+INSERT INTO `jabatans` VALUES (2, 'Keuangan dan Akuntansi', NULL, '2026-01-05 10:10:07', '2026-01-05 10:10:07');
 INSERT INTO `jabatans` VALUES (3, 'Administrasi & Umum', NULL, '2026-01-05 10:10:07', '2026-01-05 10:10:07');
 INSERT INTO `jabatans` VALUES (4, 'Humas & Pemasaran', NULL, '2026-01-05 10:10:07', '2026-01-05 10:10:07');
 INSERT INTO `jabatans` VALUES (5, 'Sekretariat', NULL, '2026-01-05 10:10:07', '2026-01-05 10:10:07');
