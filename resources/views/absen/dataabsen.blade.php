@@ -360,13 +360,13 @@
                                         @endif
 
                                         @if ($da->id)
-                                            <li class="delete">
+                                            {{-- <li class="delete">
                                                 <form action="{{ url('/data-absen/'.$da->id.'/delete') }}" method="post" class="d-inline">
                                                     @method('delete')
                                                     @csrf
                                                     <button class="border-0" style="background-color: transparent" onClick="return confirm('Are You Sure')"><i class="fas fa-trash"></i></button>
                                                 </form>
-                                            </li>
+                                            </li> --}}
                                         @endif
                                     </ul>
                                 </td>

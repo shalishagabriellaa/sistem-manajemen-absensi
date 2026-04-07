@@ -462,6 +462,36 @@ Route::get('/informasi-user/show/{id}', [BeritaController::class, 'informasiUser
 
 Route::get('/switch/{id}', [authController::class, 'switch'])->middleware('auth');
 
+// ── Face recognition routes (sudah ada, pastikan ada semua) ──
+Route::get('/ajaxGetNeural', [authController::class, 'ajaxGetNeural']);
+Route::post('/ajaxDescrip',  [karyawanController::class, 'ajaxDescrip'])->middleware('auth');
+Route::post('/ajaxPhoto',    [karyawanController::class, 'ajaxPhoto'])->middleware('auth');
+
+// ── Absensi (tanpa auth karena diakses dari halaman login) ──
+Route::get('/presensi',         [authController::class, 'presensi']);
+Route::get('/presensiPulang',   [authController::class, 'presensiPulang']);
+Route::post('/presensi/store',  [authController::class, 'presensiStore']);
+Route::post('/presensiPulang/store', [authController::class, 'presensiPulangStore']);
+
+// ── QR Code absensi ──
+Route::get('/qrMasuk',           [authController::class, 'qrMasuk']);
+Route::get('/qrPulang',          [authController::class, 'qrPulang']);
+Route::post('/qrMasuk/store',    [authController::class, 'qrMasukStore']);
+Route::post('/qrPulang/store',   [authController::class, 'qrPulangStore']);
+
+// ── Karyawan (dengan auth) ──
+Route::middleware('auth')->group(function () {
+    Route::get('/pegawai',                      [karyawanController::class, 'index']);
+    Route::get('/pegawai/tambah-pegawai',       [karyawanController::class, 'tambahKaryawan']);
+    Route::post('/pegawai/tambah-pegawai-proses', [karyawanController::class, 'tambahKaryawanProses']);
+    Route::get('/pegawai/detail/{id}',          [karyawanController::class, 'detail']);
+    Route::post('/pegawai/edit/{id}',           [karyawanController::class, 'editKaryawanProses']);
+    Route::get('/pegawai/delete/{id}',          [karyawanController::class, 'deleteKaryawan']);
+
+    // ← Halaman daftar wajah per karyawan (sudah ada di controller)
+    Route::get('/pegawai/face/{id}',            [karyawanController::class, 'face']);
+});
+
 Route::get('/reset', function () {
     Artisan::call('optimize');
     Artisan::call('config:cache');

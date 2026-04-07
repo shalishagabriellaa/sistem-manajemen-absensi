@@ -573,12 +573,18 @@ class authController extends Controller
     }
 
     public function ajaxGetNeural()
-    {
-        $inp = file_get_contents('neural.json');
-        $tempArray = json_decode($inp);
-        $jsonData = json_encode($tempArray);
-        echo $jsonData;
+{
+    $path = public_path('neural.json');
+
+    if (!file_exists($path)) {
+        echo '[]';
+        return;
     }
+
+    $inp       = file_get_contents($path);
+    $tempArray = json_decode($inp);
+    echo json_encode($tempArray);
+}
 
     public function registerProses(Request $request)
     {

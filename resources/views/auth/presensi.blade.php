@@ -428,40 +428,43 @@
                 start();
             };
 
-            async function start() {
-                updateStatus('Memuat data wajah terdaftar...', 'loading');
-                
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
+async function start() {
+    updateStatus('Memuat data wajah terdaftar...', 'loading');
 
-                // Get neural data to create faceMatcher
-                $.ajax({
-                    datatype: 'json',
-                    url: "{{ url('/ajaxGetNeural') }}",
-                    data: ""
-                }).done(async function(data) {
-                    if (data.length > 2) {
-                        var json_str = "{\"parent\":" + data + "}"
-                        var content = JSON.parse(json_str);
-                        for (let x = 0; x < content.parent.length; x++) {
-                            for (let y = 0; y < content.parent[x].descriptors.length; y++) {
-                                let results = Object.values(content.parent[x].descriptors[y])
-                                content.parent[x].descriptors[y] = new Float32Array(results)
-                            }
-                        }
-                        faceMatcher = await createFaceMatcher(content);
-                        updateStatus('Sistem siap! Arahkan wajah ke kamera', 'info');
-                        onPlay();
-                    } else {
-                        updateStatus('Tidak ada data wajah terdaftar', 'error');
-                    }
-                }).fail(function() {
-                    updateStatus('Gagal memuat data wajah', 'error');
-                });
+    $.ajaxSetup({
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+    });
+
+    $.ajax({
+        url: "{{ url('/ajaxGetNeural') }}",
+        method: 'GET'
+    }).done(async function(data) {
+        try {
+            // Parse langsung — neural.json adalah plain array
+            const content = (typeof data === 'string') ? JSON.parse(data) : data;
+
+            if (!content || content.length === 0) {
+                updateStatus('Tidak ada data wajah terdaftar', 'error');
+                return;
             }
+
+            const labeledDescriptors = content.map(person => {
+                const descs = person.descriptors.map(d => new Float32Array(d));
+                return new faceapi.LabeledFaceDescriptors(person.label, descs);
+            });
+
+            // Threshold 0.6 lebih toleran
+            faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
+            updateStatus('Sistem siap! Arahkan wajah ke kamera', 'info');
+            onPlay();
+        } catch(e) {
+            console.error('Error parsing neural data:', e);
+            updateStatus('Error memproses data wajah', 'error');
+        }
+    }).fail(function() {
+        updateStatus('Gagal memuat data wajah', 'error');
+    });
+}
 
             async function createFaceMatcher(data) {
                 const labeledFaceDescriptors = await Promise.all(data.parent.map(className => {
