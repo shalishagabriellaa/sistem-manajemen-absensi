@@ -475,7 +475,7 @@
                         </div>
                     </div>
 
-                    {{-- TAB SLIP GAJI (placeholder, isi sesuai kebutuhan) --}}
+                    {{-- TAB SLIP GAJI --}}
                     <div id="tab-gift-item-slip app-wrap" class="app-wrap">
                         <div class="bill-content">
                             <div class="tf-container">
@@ -484,7 +484,71 @@
                                     <div class="tf-container">
                                         <h3>Slip Gaji</h3>
                                         <br>
-                                        <p class="text-center text-muted">Data slip gaji akan ditampilkan di sini.</p>
+
+                                        @php
+                                            $namaBulan = ['','Januari','Februari','Maret','April','Mei','Juni',
+                                                'Juli','Agustus','September','Oktober','November','Desember'];
+                                        @endphp
+
+                                        @if(isset($payrolls) && $payrolls->isNotEmpty())
+                                            @foreach($payrolls as $pay)
+                                            <div class="card mb-3" style="border-radius:12px; border:1px solid #e0e0e0; box-shadow:0 2px 8px rgba(0,0,0,0.07);">
+                                                <div class="card-body p-3">
+                                                    {{-- Header slip --}}
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <div>
+                                                            <span class="badge badge-primary" style="font-size:12px; padding:5px 10px;">
+                                                                {{ $namaBulan[$pay->bulan] ?? $pay->bulan }} {{ $pay->tahun }}
+                                                            </span>
+                                                            <small class="text-muted ml-2">{{ $pay->no_gaji }}</small>
+                                                        </div>
+                                                        <a href="{{ url('/payroll/'.$pay->id.'/download') }}" target="_blank"
+                                                        style="background:#003366; color:#fff; border:none; border-radius:8px; padding:6px 14px; font-size:12px; text-decoration:none;">
+                                                            <i class="fa fa-download"></i> Unduh
+                                                        </a>
+                                                    </div>
+
+                                                    {{-- Periode --}}
+                                                    <small class="text-muted d-block mb-2">
+                                                        Periode: {{ $pay->tanggal_mulai }} s/d {{ $pay->tanggal_akhir }}
+                                                        &nbsp;|&nbsp; Kehadiran: {{ $pay->persentase_kehadiran }}%
+                                                    </small>
+
+                                                    {{-- Ringkasan 3 baris --}}
+                                                    <div class="row" style="font-size:12px;">
+                                                        <div class="col-6">
+                                                            <div class="d-flex justify-content-between py-1 border-bottom">
+                                                                <span>Gaji Pokok</span>
+                                                                <span>Rp {{ number_format($pay->gaji_pokok) }}</span>
+                                                            </div>
+                                                            <div class="d-flex justify-content-between py-1 border-bottom">
+                                                                <span>Total Pendapatan</span>
+                                                                <span class="text-success font-weight-bold">Rp {{ number_format($pay->total_penjumlahan) }}</span>
+                                                            </div>
+                                                            <div class="d-flex justify-content-between py-1">
+                                                                <span>Total Potongan</span>
+                                                                <span class="text-danger">Rp {{ number_format($pay->total_pengurangan) }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6 d-flex align-items-center justify-content-center">
+                                                            <div class="text-center" style="background:#003366; color:#fff; border-radius:10px; padding:10px 16px; width:100%;">
+                                                                <div style="font-size:10px; letter-spacing:1px; opacity:0.8;">GAJI DITERIMA</div>
+                                                                <div style="font-size:16px; font-weight:bold; margin-top:2px;">
+                                                                    Rp {{ number_format($pay->grand_total) }}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @endforeach
+                                        @else
+                                            <div class="text-center py-5">
+                                                <i class="fa fa-file-invoice-dollar fa-3x text-muted mb-3"></i>
+                                                <p class="text-muted">Belum ada data slip gaji.</p>
+                                            </div>
+                                        @endif
+
                                     </div>
                                 </ul>
                             </div>
@@ -761,6 +825,15 @@
                 reverse: true
             });
             $('#status_nikah').select2();
+
+            function toggleSlip(id) {
+                var el = document.getElementById(id);
+                if (el.style.display === 'none') {
+                    el.style.display = 'block';
+                } else {
+                    el.style.display = 'none';
+                }
+            }
         </script>
     @endpush
 @endsection
