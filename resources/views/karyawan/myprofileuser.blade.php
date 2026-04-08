@@ -1,13 +1,37 @@
 @extends('templates.app')
 @section('container')
+
+<style>
+    .menu-tabs.tabs-food-news {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+}
+
+.menu-tabs.tabs-food-news::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+.menu-tabs.tabs-food-news .nav-tab {
+    flex-shrink: 0;
+    font-size: 12px;   /* perkecil font kalau perlu */
+    padding: 10px 110px; /* kurangi padding */
+}
+
+</style>
     <div id="app-wrap" class="style1">
         <div class="tf-container">
             <div class="tf-tab">
                 <ul class="menu-tabs tabs-food-news">
                     <li class="nav-tab active">Informasi</li>
-                    <li class="nav-tab">Cuti</li>
+                    <li class="nav-tab">Kontrak</li>
+                    <li class="nav-tab">Slip Gaji</li>
                     <li class="nav-tab">+ Gaji</li>
                     <li class="nav-tab">- Gaji</li>
+                    <li class="nav-tab">Cuti</li>
                 </ul>
                 <div class="content-tab pt-tab-space mb-5">
                     <div id="tab-gift-item-1 app-wrap" class="app-wrap active-content">
@@ -374,6 +398,94 @@
                                         <br>
                                         <br>
                                     </form>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- TAB KONTRAK --}}
+                    <div id="tab-gift-item-kontrak app-wrap" class="app-wrap">
+                        <div class="bill-content">
+                            <div class="tf-container">
+                                <ul class="mt-3 mb-5">
+                                    <div class="card-secton transfer-section mt-2">
+                                        <div class="tf-container">
+                                            <div class="tf-balance-box">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div class="inner-left d-flex justify-content-between align-items-center">
+                                                        @if(auth()->user()->foto_karyawan == null)
+                                                            <img src="{{ url('assets/img/foto_default.jpg') }}" alt="image">
+                                                        @else
+                                                            <img src="{{ url('/storage/'.auth()->user()->foto_karyawan) }}" alt="image">
+                                                        @endif
+                                                        <p class="fw_7 on_surface_color">{{ auth()->user()->name }}</p>
+                                                    </div>
+                                                    <p class="fw_7 on_surface_color">{{ auth()->user()->Jabatan->nama_jabatan }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tf-spacing-20"></div>
+                                    <div class="tf-container">
+                                        <h3>Kontrak Kerja</h3>
+                                        <br>
+                                        @if($kontraks->isEmpty())
+                                            <p class="text-center text-muted">Belum ada data kontrak.</p>
+                                        @else
+                                            @foreach($kontraks as $kontrak)
+                                                <div class="card mb-3" style="border-radius: 10px; border: 1px solid #e0e0e0;">
+                                                    <div class="card-body">
+                                                        <div class="group-input">
+                                                            <label>Jenis Kontrak</label>
+                                                            <input type="text" value="{{ $kontrak->jenis_kontrak ?? '-' }}" readonly />
+                                                        </div>
+                                                        <div class="group-input">
+                                                            <label>Tanggal Kontrak</label>
+                                                            <input type="text" value="@if($kontrak->tanggal){{ \Carbon\Carbon::createFromFormat('Y-m-d', $kontrak->tanggal)->translatedFormat('d F Y') }}@else-@endif" readonly />
+                                                        </div>
+                                                        <div class="group-input">
+                                                            <label>Tanggal Mulai</label>
+                                                            <input type="text" value="@if($kontrak->tanggal_mulai){{ \Carbon\Carbon::createFromFormat('Y-m-d', $kontrak->tanggal_mulai)->translatedFormat('d F Y') }}@else-@endif" readonly />
+                                                        </div>
+                                                        <div class="group-input">
+                                                            <label>Tanggal Selesai</label>
+                                                            <input type="text" value="@if($kontrak->tanggal_selesai){{ \Carbon\Carbon::createFromFormat('Y-m-d', $kontrak->tanggal_selesai)->translatedFormat('d F Y') }}@else-@endif" readonly />
+                                                        </div>
+                                                        @if($kontrak->keterangan)
+                                                        <div class="group-input">
+                                                            <label>Keterangan</label>
+                                                            <textarea readonly style="resize:none;">{{ $kontrak->keterangan }}</textarea>
+                                                        </div>
+                                                        @endif
+                                                        @if($kontrak->kontrak_file_path)
+                                                        <div class="group-input">
+                                                            <label>File Kontrak</label>
+                                                            <a href="{{ url('/storage/'.$kontrak->kontrak_file_path) }}" class="btn btn-sm btn-outline-primary mt-1" target="_blank">
+                                                                <i class="fa fa-download"></i> {{ $kontrak->kontrak_file_name }}
+                                                            </a>
+                                                        </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- TAB SLIP GAJI (placeholder, isi sesuai kebutuhan) --}}
+                    <div id="tab-gift-item-slip app-wrap" class="app-wrap">
+                        <div class="bill-content">
+                            <div class="tf-container">
+                                <ul class="mt-3 mb-5">
+                                    <div class="tf-spacing-20"></div>
+                                    <div class="tf-container">
+                                        <h3>Slip Gaji</h3>
+                                        <br>
+                                        <p class="text-center text-muted">Data slip gaji akan ditampilkan di sini.</p>
+                                    </div>
                                 </ul>
                             </div>
                         </div>
