@@ -982,7 +982,10 @@ class karyawanController extends Controller
             return view('karyawan.myprofileuser', [
                 'title' => 'My Profile',
                 'data_jabatan' => Jabatan::all(),
-                "data_lokasi" => Lokasi::where('status', 'approved')->get()
+                "data_lokasi" => Lokasi::where('status', 'approved')->get(),
+                'kontraks' => \App\Models\Kontrak::where('user_id', auth()->user()->id)
+                                ->orderBy('tanggal', 'desc')
+                                ->get()
             ]);
         }
     }
