@@ -6,13 +6,29 @@ use App\Models\Lokasi;
 use App\Models\Counter;
 use App\Models\Jabatan;
 use App\Models\Inventory;
+use App\Models\User;
 use App\Imports\InventoryImport;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\InventoryExport;
+use App\Notifications\InventoryNotification;
 
 class InventoryController extends Controller
 {
+    // Helper kirim notifikasi ke semua admin
+    private function notifikasiAdmin(string $message, string $action = '/inventory')
+    {
+        $admins = User::where('is_admin', 'admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new InventoryNotification([
+                'user_id' => auth()->user()->id,
+                'from'    => auth()->user()->name,
+                'message' => $message,
+                'action'  => $action,
+            ]));
+        }
+    }
+
     public function index(Request $request)
     {
         $search = $request->search;
@@ -27,7 +43,6 @@ class InventoryController extends Controller
                     ->orWhere('desc', 'like', "%{$search}%");
             });
 
-        // Batasi data user biasa hanya milik jabatan mereka
         if (auth()->user()->is_admin !== 'admin') {
             $inventories->where('jabatan_id', auth()->user()->jabatan_id);
         }
@@ -73,10 +88,13 @@ class InventoryController extends Controller
             'jabatan_id'   => 'required',
         ]);
 
-        // tambahkan jabatan user login
         $validated['jabatan_id'] = auth()->user()->jabatan_id;
 
-        Inventory::create($validated);
+        $inventory = Inventory::create($validated);
+
+        $this->notifikasiAdmin(
+            auth()->user()->name . ' menambahkan barang baru: ' . $inventory->nama_barang . ' (' . $inventory->kode_barang . ')'
+        );
 
         return redirect('/inventory')->with('success', 'Data Berhasil Disimpan');
     }
@@ -93,44 +111,69 @@ class InventoryController extends Controller
         ));
     }
 
+ public function update(Request $request, $id)
+{
+    $inventory = Inventory::find($id);
+    $validated = $request->validate([
+        'kode_barang'  => 'required',
+        'jenis_barang' => 'nullable',
+        'merek'        => 'nullable',
+        'nama_barang'  => 'required',
+        'stok'         => 'required',
+        'uom'          => 'required',
+        'desc'         => 'nullable',
+        'lokasi_id'    => 'required',
+        'jabatan_id'   => 'required',
+    ]);
+
+    // Cek field mana yang berubah sebelum update
+    $labelMap = [
+        'kode_barang'  => 'Kode Barang',
+        'jenis_barang' => 'Jenis Barang',
+        'merek'        => 'Merek',
+        'nama_barang'  => 'Nama Barang',
+        'stok'         => 'Stok',
+        'uom'          => 'UoM',
+        'desc'         => 'Description',
+        'lokasi_id'    => 'Lokasi',
+        'jabatan_id'   => 'Divisi/Jabatan',
+    ];
+
+    $perubahan = [];
+    foreach ($labelMap as $field => $label) {
+        $lama = (string) $inventory->$field;
+        $baru = (string) ($validated[$field] ?? '');
+        if ($lama !== $baru) {
+            $perubahan[] = "{$label}: {$lama} → {$baru}";
+        }
+    }
+
+    $inventory->update($validated);
+
+    $detailPerubahan = count($perubahan) > 0
+        ? ' | Perubahan: ' . implode(', ', $perubahan)
+        : '';
+
+    $this->notifikasiAdmin(
+        auth()->user()->name . ' mengupdate barang: ' . $inventory->kode_barang . ' ' . $detailPerubahan
+    );
+
+    return redirect('/inventory')->with('success', 'Data Berhasil Diupdate');
+}
+
     public function export()
     {
         $jabatanId = auth()->user()->is_admin === 'admin'
             ? null
             : auth()->user()->jabatan_id;
 
+        $this->notifikasiAdmin(
+            auth()->user()->name . ' mengekspor data inventory ke Excel'
+        );
+
         return Excel::download(new InventoryExport($jabatanId), 'inventory.xlsx');
     }
 
-    public function update(Request $request, $id)
-    {
-        $inventory = Inventory::find($id);
-        $validated = $request->validate([
-            'kode_barang'  => 'required',
-            'jenis_barang' => 'nullable',
-            'merek'        => 'nullable',
-            'nama_barang'  => 'required',
-            'stok'         => 'required',
-            'uom'          => 'required',
-            'desc'         => 'nullable',
-            'lokasi_id'    => 'required',
-            'jabatan_id'   => 'required',
-        ]);
-
-        $inventory->update($validated);
-        return redirect('/inventory')->with('success', 'Data Berhasil Diupdate');
-    }
-
-    public function delete($id)
-    {
-        $inventory = Inventory::find($id);
-        $inventory->delete();
-        return redirect('/inventory')->with('success', 'Data Berhasil Dihapus');
-    }
-
-    /**
-     * Import data inventory dari file Excel (.xlsx)
-     */
     public function import(Request $request)
     {
         $request->validate([
@@ -148,8 +191,17 @@ class InventoryController extends Controller
             $errors = $import->errors();
             if ($errors->count() > 0) {
                 $msgs = collect($errors)->map(fn($e) => $e->getMessage())->implode(' | ');
+
+                $this->notifikasiAdmin(
+                    auth()->user()->name . ' mengimpor inventory namun ada error: ' . $msgs
+                );
+
                 return redirect('/inventory')->with('warning', 'Import selesai dengan beberapa error: ' . $msgs);
             }
+
+            $this->notifikasiAdmin(
+                auth()->user()->name . ' berhasil mengimpor data inventory dari Excel'
+            );
 
             return redirect('/inventory')->with('success', 'Data Inventory berhasil diimport!');
         } catch (\Exception $e) {
@@ -157,14 +209,10 @@ class InventoryController extends Controller
         }
     }
 
-    /**
-     * Download template Excel Metech (sama persis dengan template asli)
-     */
     public function downloadTemplate()
     {
         $filePath = '/mnt/user-data/uploads/inventory_metech_template.xlsx';
 
-        // Jika file template asli tersedia, langsung kembalikan
         if (file_exists($filePath)) {
             return response()->download(
                 $filePath,
@@ -173,20 +221,15 @@ class InventoryController extends Controller
             );
         }
 
-        // Fallback: generate template dengan PhpSpreadsheet
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Inventory');
 
-        // Baris 1: Judul
         $sheet->setCellValue('A1', 'Inventory Metech');
         $sheet->mergeCells('A1:I1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
-        // Baris 2: kosong
-
-        // Baris 3: Header kolom (SAMA PERSIS dengan template)
         $headers = ['Kode Barang', 'Jenis Barang', 'Merek', 'Nama Barang', 'Stok', 'UoM', 'Description', 'Lokasi', 'Divisi / Jabatan'];
         $cols    = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
 
@@ -194,7 +237,6 @@ class InventoryController extends Controller
             $sheet->setCellValue($cols[$i] . '3', $header);
         }
 
-        // Style header baris 3
         $sheet->getStyle('A3:I3')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '2563EB']],
@@ -205,15 +247,13 @@ class InventoryController extends Controller
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        $headers_response = [
-            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="inventory_metech_template.xlsx"',
-        ];
-
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
 
         return response()->stream(function () use ($writer) {
             $writer->save('php://output');
-        }, 200, $headers_response);
+        }, 200, [
+            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="inventory_metech_template.xlsx"',
+        ]);
     }
-}
+}   
