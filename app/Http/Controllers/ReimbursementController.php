@@ -113,29 +113,36 @@ class ReimbursementController extends Controller
         return redirect('/reimbursement')->with('success', 'Data Berhasil Disimpan');
     }
 
-    public function edit($id)
-    {
-        $reimbursement = Reimbursement::find($id);
-        $title = 'Reimbursement';
-        $user = User::orderBy('name', 'ASC')->get();
-        $kategori = Kategori::orderBy('name', 'ASC')->where('active', 1)->get();
-        if (auth()->user()->is_admin == 'admin') {
-            return view('reimbursement.edit', compact(
-                'title',
-                'user',
-                'kategori',
-                'reimbursement',
-            ));
-        } else {
-            return view('reimbursement.editUser', compact(
-                'title',
-                'user',
-                'kategori',
-                'reimbursement',
-            ));
-        }
+        public function edit($id)
+        {
+            $reimbursement = Reimbursement::find($id);
+            $title = 'Reimbursement';
 
-    }
+            $project = \App\Models\Project::where('status', 'Active')
+                        ->orderBy('nama_po')
+                        ->get();
+
+            $user = User::orderBy('name', 'ASC')->get();
+            $kategori = Kategori::orderBy('name', 'ASC')->where('active', 1)->get();
+
+            if (auth()->user()->is_admin == 'admin') {
+                return view('reimbursement.edit', compact(
+                    'title',
+                    'project',
+                    'user',
+                    'kategori',
+                    'reimbursement'
+                ));
+            } else {
+                return view('reimbursement.editUser', compact(
+                    'title',
+                    'project',
+                    'user',
+                    'kategori',
+                    'reimbursement'
+                ));
+            }
+        }
 
     public function update(Request $request, $id)
     {

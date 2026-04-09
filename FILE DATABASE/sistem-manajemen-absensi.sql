@@ -64,6 +64,61 @@ INSERT INTO `beritas` VALUES (8, 'Informasi', 'Informasi 3', 'Lorem ipsum dolor 
 INSERT INTO `beritas` VALUES (9, 'Informasi', 'Informasi 4', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sequi provident sed, corporis amet sint ratione tenetur rerum non repudiandae. Voluptatibus pariatur facere voluptate neque aliquid doloribus corrupti natus. Blanditiis dolore, saepe debitis autem enim molestias? Neque dicta officia officiis ut sit! Iste dolor excepturi atque quidem ipsum quam dignissimos eum neque rem. Assumenda saepe eligendi amet? Iste earum soluta deleniti facilis odio! Temporibus ut veniam minima modi voluptatibus, consequatur quidem voluptates provident ratione eaque totam similique et in perferendis molestiae incidunt aut voluptatem ad, quisquam praesentium ex beatae, fugit aperiam. Quos sit ad est aspernatur in eum accusamus, asperiores voluptatum.', 'berita_file_path/informasi.png', NULL, '2026-01-05 10:10:06', '2026-01-05 10:10:06');
 INSERT INTO `beritas` VALUES (10, 'Informasi', 'Informasi 5', 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sequi provident sed, corporis amet sint ratione tenetur rerum non repudiandae. Voluptatibus pariatur facere voluptate neque aliquid doloribus corrupti natus. Blanditiis dolore, saepe debitis autem enim molestias? Neque dicta officia officiis ut sit! Iste dolor excepturi atque quidem ipsum quam dignissimos eum neque rem. Assumenda saepe eligendi amet? Iste earum soluta deleniti facilis odio! Temporibus ut veniam minima modi voluptatibus, consequatur quidem voluptates provident ratione eaque totam similique et in perferendis molestiae incidunt aut voluptatem ad, quisquam praesentium ex beatae, fugit aperiam. Quos sit ad est aspernatur in eum accusamus, asperiores voluptatum.', 'berita_file_path/informasi.png', NULL, '2026-01-05 10:10:06', '2026-01-05 10:10:06');
 
+--
+-- Table structure for table `budgetings`
+--
+
+CREATE TABLE `budgetings` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `project_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `kategori_id` bigint(20) UNSIGNED NOT NULL,
+  `tanggal` date DEFAULT NULL,
+  `event` text DEFAULT NULL,
+  `status` varchar(191) DEFAULT NULL,
+  `jumlah` bigint(20) DEFAULT NULL,
+  `qty` int(11) DEFAULT NULL,
+  `total` bigint(20) DEFAULT NULL,
+  `sisa` bigint(20) DEFAULT NULL,
+  `file_path` varchar(191) DEFAULT NULL,
+  `file_name` varchar(191) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+
+--
+-- Dumping data for table `budgetings`
+--
+
+INSERT INTO `budgetings` (`id`, `user_id`, `project_id`, `kategori_id`, `tanggal`, `event`, `status`, `jumlah`, `qty`, `total`, `sisa`, `file_path`, `file_name`, `created_at`, `updated_at`) VALUES
+(1, 4, NULL, 1, '2026-04-10', 'fsfs', 'Pending', 200000, 1, 200000, 200000, 'budgeting_files/MV8OiOWSR4qDLjf4K5fh4yJjTGV1DLtllvui9Zb9.jpg', 'Jaemin with camera.jpg', '2026-04-09 05:41:09', '2026-04-09 05:41:09'),
+(2, 2, NULL, 4, '2026-04-15', 'fsfs', 'Pending', 200000, 5, 1000000, 1000000, 'budgeting_files/eQ3VAd3dvxxgVvTiO1uMzYnN0ex4VufgJ5sO0tGR.jpg', 'xiaojun.jpg', '2026-04-09 07:14:03', '2026-04-09 07:14:03');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `budgetings_items`
+--
+
+CREATE TABLE `budgetings_items` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `budgeting_id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `fee` bigint(20) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+
+--
+-- Dumping data for table `budgetings_items`
+--
+
+INSERT INTO `budgetings_items` (`id`, `budgeting_id`, `user_id`, `fee`, `created_at`, `updated_at`) VALUES
+(1, 1, 5, 0, '2026-04-09 05:41:09', '2026-04-09 05:41:09'),
+(2, 2, 3, 0, '2026-04-09 07:14:03', '2026-04-09 07:14:03');
+
+-- --------------------------------------------------------
+
 -- ----------------------------
 -- Table structure for counters
 -- ----------------------------
@@ -920,6 +975,31 @@ CREATE TABLE `personal_access_tokens`  (
 -- Records of personal_access_tokens
 -- ----------------------------
 
+--
+-- Table structure for table `projects`
+--
+
+CREATE TABLE `projects` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `jenis_project` varchar(191) DEFAULT NULL,
+  `tanggal_po` date DEFAULT NULL,
+  `tanggal_kontrak` date DEFAULT NULL,
+  `no_po` varchar(191) DEFAULT NULL,
+  `nama_po` varchar(191) DEFAULT NULL,
+  `nilai_po` bigint(20) DEFAULT NULL,
+  `no_kontrak` varchar(191) DEFAULT NULL,
+  `nama_kontrak` varchar(191) DEFAULT NULL,
+  `status` varchar(191) DEFAULT 'Active',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+
+--
+-- Dumping data for table `projects`
+--
+-- --------------------------------------------------------
+
 -- ----------------------------
 -- Table structure for rapat_notulens
 -- ----------------------------
@@ -979,49 +1059,62 @@ CREATE TABLE `rapats`  (
 -- Records of rapats
 -- ----------------------------
 
--- ----------------------------
--- Table structure for reimbursements
--- ----------------------------
-DROP TABLE IF EXISTS `reimbursements`;
-CREATE TABLE `reimbursements`  (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+--
+-- Table structure for table `reimbursements`
+--
+
+CREATE TABLE `reimbursements` (
+  `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
+  `project_id` bigint(20) UNSIGNED DEFAULT NULL,
   `kategori_id` bigint(20) UNSIGNED NOT NULL,
-  `tanggal` date NULL DEFAULT NULL,
-  `event` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `status` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `jumlah` bigint(20) NULL DEFAULT NULL,
-  `qty` int(11) NULL DEFAULT NULL,
-  `total` bigint(20) NULL DEFAULT NULL,
-  `sisa` bigint(20) NULL DEFAULT NULL,
-  `file_path` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `file_name` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `tanggal` date DEFAULT NULL,
+  `event` text DEFAULT NULL,
+  `status` varchar(191) DEFAULT NULL,
+  `jumlah` bigint(20) DEFAULT NULL,
+  `qty` int(11) DEFAULT NULL,
+  `total` bigint(20) DEFAULT NULL,
+  `sisa` bigint(20) DEFAULT NULL,
+  `file_path` varchar(191) DEFAULT NULL,
+  `file_name` varchar(191) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
--- ----------------------------
--- Records of reimbursements
--- ----------------------------
+--
+-- Dumping data for table `reimbursements`
+--
 
--- ----------------------------
--- Table structure for reimbursements_items
--- ----------------------------
-DROP TABLE IF EXISTS `reimbursements_items`;
-CREATE TABLE `reimbursements_items`  (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+INSERT INTO `reimbursements` (`id`, `user_id`, `project_id`, `kategori_id`, `tanggal`, `event`, `status`, `jumlah`, `qty`, `total`, `sisa`, `file_path`, `file_name`, `created_at`, `updated_at`) VALUES
+(1, 2, NULL, 4, '2026-04-02', 'makan', 'Pending', 200000, 1, 200000, 200000, 'file_path/jwTJXS4jcsF9todyRw4k457eQfeSTbNdaNitOvyk.jpg', 'Jaemin with camera.jpg', '2026-04-06 03:52:05', '2026-04-06 03:52:05'),
+(2, 2, NULL, 4, '2026-04-02', 'makan', 'Pending', 200000, 1, 200000, 200000, 'file_path/HaQfnsU985mkLz6JB9SZ9P6FnAE25LT8HGT2Zjmb.jpg', 'Jaemin with camera.jpg', '2026-04-06 03:53:13', '2026-04-06 03:53:13'),
+(3, 2, NULL, 2, '2026-04-01', 'bhjjk', 'Pending', 100000, 1, 100000, 100000, 'file_path/2CklRdEw4GqROoNmlM07oZROY2wnXCQIMefmgLsJ.jpg', 'xiaojun.jpg', '2026-04-06 04:11:30', '2026-04-06 04:11:30');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `reimbursements_items`
+--
+
+CREATE TABLE `reimbursements_items` (
+  `id` bigint(20) UNSIGNED NOT NULL,
   `reimbursement_id` bigint(20) UNSIGNED NOT NULL,
-  `user_id` bigint(20) UNSIGNED NULL DEFAULT NULL,
-  `fee` bigint(20) NULL DEFAULT NULL,
+  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `fee` bigint(20) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
--- ----------------------------
--- Records of reimbursements_items
--- ----------------------------
+--
+-- Dumping data for table `reimbursements_items`
+--
+
+INSERT INTO `reimbursements_items` (`id`, `reimbursement_id`, `user_id`, `fee`, `created_at`, `updated_at`) VALUES
+(1, 1, 6, 0, '2026-04-06 03:52:05', '2026-04-06 03:52:05'),
+(2, 2, 6, 0, '2026-04-06 03:53:13', '2026-04-06 03:53:13'),
+(3, 3, 1, 0, '2026-04-06 04:11:30', '2026-04-06 04:11:30');
+
+-- --------------------------------------------------------
 
 -- ----------------------------
 -- Table structure for reset_cutis

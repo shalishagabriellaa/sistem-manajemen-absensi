@@ -304,7 +304,9 @@
                             <li><a href="{{ url('/payroll') }}">Payroll</a></li>
                             <li><a href="{{ url('/pajak') }}">Pajak</a></li>
                             <li><a href="{{ url('/kasbon') }}">Kasbon</a></li>
+                            <li><a href="{{ url('/project') }}">Project</a></li>
                             <li><a href="{{ url('/reimbursement') }}">Reimbursement</a></li>
+                            <li><a href="{{ url('/budgeting') }}">Budgeting</a></li>
                             <li><a href="{{ url('/kategori') }}">Kategori Reimbursement</a></li>
                             <li><a href="{{ url('/list-pengajuan-keuangan') }}">Pengajuan Keuangan</a></li>
                             <li><a href="{{ url('/status-pajak') }}">Status Pajak</a></li>
