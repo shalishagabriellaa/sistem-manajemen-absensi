@@ -475,21 +475,161 @@
                         </div>
                     </div>
 
-                    {{-- TAB SLIP GAJI (placeholder, isi sesuai kebutuhan) --}}
+                    {{-- TAB SLIP GAJI --}}
+
                     <div id="tab-gift-item-slip app-wrap" class="app-wrap">
                         <div class="bill-content">
                             <div class="tf-container">
                                 <ul class="mt-3 mb-5">
-                                    <div class="tf-spacing-20"></div>
-                                    <div class="tf-container">
-                                        <h3>Slip Gaji</h3>
-                                        <br>
-                                        <p class="text-center text-muted">Data slip gaji akan ditampilkan di sini.</p>
-                                    </div>
-                                </ul>
-                            </div>
+
+                                <div class="tf-spacing-20"></div>
+
+                                <div class="tf-container">
+                                    <h3>Slip Gaji</h3>
+                                    <br>
+
+                                    @php
+                                        $namaBulan = ['','Januari','Februari','Maret','April','Mei','Juni',
+                                            'Juli','Agustus','September','Oktober','November','Desember'];
+                                    @endphp
+
+                                    @if(isset($payrolls) && $payrolls->isNotEmpty())
+
+                                        @foreach($payrolls as $pay)
+
+                                        <div class="card mb-3" style="
+                                            border:none;
+                                            border-radius:14px;
+                                            box-shadow:0 4px 14px rgba(0,0,0,0.08);
+                                        ">
+
+                                            <div class="card-body p-3">
+
+                                                {{-- HEADER --}}
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+
+                                                    <div>
+                                                        <div style="
+                                                            font-size:14px;
+                                                            font-weight:600;
+                                                            color:#003366;
+                                                        ">
+                                                            {{ $namaBulan[$pay->bulan] ?? $pay->bulan }} {{ $pay->tahun }}
+                                                        </div>
+
+                                                        <small class="text-muted">
+                                                            No Slip: {{ $pay->no_gaji }}
+                                                        </small>
+                                                    </div>
+
+                                                    <a href="{{ url('/payroll/'.$pay->id.'/download') }}"
+                                                    target="_blank"
+                                                    style="
+                                                    background:#003366;
+                                                    color:#fff;
+                                                    border-radius:8px;
+                                                    padding:6px 12px;
+                                                    font-size:12px;
+                                                    text-decoration:none;
+                                                    ">
+
+                                                        <i class="fa fa-download"></i> PDF
+                                                    </a>
+
+                                                </div>
+
+                                                {{-- PERIODE --}}
+                                                <div style="
+                                                    font-size:12px;
+                                                    color:#777;
+                                                    margin-bottom:10px;
+                                                ">
+                                                    Periode {{ $pay->tanggal_mulai }} - {{ $pay->tanggal_akhir }}
+                                                    &nbsp; • &nbsp;
+                                                    Kehadiran {{ $pay->persentase_kehadiran }}%
+                                                </div>
+
+                                                <hr style="margin:6px 0;">
+
+                                                {{-- DETAIL GAJI --}}
+                                                <div style="font-size:12px">
+
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span>Gaji Pokok</span>
+                                                        <span>Rp {{ number_format($pay->gaji_pokok) }}</span>
+                                                    </div>
+
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span>Total Pendapatan</span>
+                                                        <span style="color:#1ba97f; font-weight:600;">
+                                                            Rp {{ number_format($pay->total_penjumlahan) }}
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="d-flex justify-content-between py-1">
+                                                        <span>Total Potongan</span>
+                                                        <span style="color:#e53935;">
+                                                            Rp {{ number_format($pay->total_pengurangan) }}
+                                                        </span>
+                                                    </div>
+
+                                                </div>
+
+                                                {{-- TOTAL GAJI --}}
+                                                <div style="
+                                                    margin-top:12px;
+                                                    background:linear-gradient(135deg,#003366,#0056b3);
+                                                    color:white;
+                                                    border-radius:10px;
+                                                    padding:12px;
+                                                    text-align:center;
+                                                ">
+
+                                                    <div style="
+                                                        font-size:11px;
+                                                        letter-spacing:1px;
+                                                        opacity:0.8;
+                                                    ">
+                                                        GAJI DITERIMA
+                                                    </div>
+
+                                                    <div style="
+                                                        font-size:18px;
+                                                        font-weight:700;
+                                                        margin-top:2px;
+                                                    ">
+                                                        Rp {{ number_format($pay->grand_total) }}
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+                                        </div>
+
+                                        @endforeach
+
+                                    @else
+
+                                        <div class="text-center py-5">
+
+                                            <i class="fa fa-file-invoice-dollar fa-3x text-muted mb-3"></i>
+
+                                            <p class="text-muted">
+                                                Belum ada data slip gaji.
+                                            </p>
+
+                                        </div>
+
+                                    @endif
+
+                                </div>
+
+                            </ul>
                         </div>
                     </div>
+
+</div>
+
 
                     <div id="tab-gift-item-2 app-wrap" class="app-wrap">
                         <div class="bill-content">
@@ -761,6 +901,15 @@
                 reverse: true
             });
             $('#status_nikah').select2();
+
+            function toggleSlip(id) {
+                var el = document.getElementById(id);
+                if (el.style.display === 'none') {
+                    el.style.display = 'block';
+                } else {
+                    el.style.display = 'none';
+                }
+            }
         </script>
     @endpush
 @endsection

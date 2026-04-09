@@ -985,7 +985,11 @@ class karyawanController extends Controller
                 "data_lokasi" => Lokasi::where('status', 'approved')->get(),
                 'kontraks' => \App\Models\Kontrak::where('user_id', auth()->user()->id)
                                 ->orderBy('tanggal', 'desc')
-                                ->get()
+                                ->get(),
+                'payrolls' => \App\Models\Payroll::where('user_id', auth()->user()->id)
+                                ->orderBy('tahun', 'DESC')
+                                ->orderBy('bulan', 'DESC')
+                                ->get(),
             ]);
         }
     }

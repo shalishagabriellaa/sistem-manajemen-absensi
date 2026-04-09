@@ -42,8 +42,6 @@ class PayrollController extends Controller
                 'data' => $data->paginate(10)->withQueryString()
             ]);
         }
-
-
     }
 
     public function tambah()
@@ -51,212 +49,243 @@ class PayrollController extends Controller
         return view('payroll.tambah', [
             'title' => 'Tambah Data Penggajian Karyawan',
             'data_user' => User::select('id', 'name')->orderBy('name', 'ASC')->get(),
-            'data_status' => StatusPtkp::select('id', 'name')->orderBy('name', 'ASC')->get()
         ]);
+    }
+
+    /**
+     * AJAX: Ambil data kompensasi pegawai berdasarkan user_id
+     * Route: GET /payroll/get-user-data/{id}
+     */
+    public function getUserData($id)
+    {
+        $user = User::select([
+            'id', 'name', 'rekening', 'nama_rekening', 'tgl_join', 'izin_cuti',
+            'gaji_pokok', 'tunjangan_makan', 'tunjangan_transport',
+            'tunjangan_bpjs_kesehatan', 'tunjangan_bpjs_ketenagakerjaan',
+            'lembur', 'kehadiran', 'thr',
+            'bonus_pribadi', 'bonus_team',
+            'izin', 'terlambat', 'mangkir', 'saldo_kasbon',
+            'potongan_bpjs_kesehatan', 'potongan_bpjs_ketenagakerjaan',
+        ])->find($id);
+
+        if (!$user) {
+            return response()->json(null, 404);
+        }
+
+        return response()->json($user);
     }
 
     public function tambahProses(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required',
-            'status_id' => 'required',
-            'bulan' => 'required',
-            'tahun' => 'required',
-            'gaji' => 'required',
-            'setoran_bpjs_kes' => 'nullable',
-            'tunjangan_bpjs_kes' => 'nullable',
-            'setoran_bpjs_tk' => 'nullable',
-            'tunjangan_bpjs_tk' => 'nullable',
-            'tunjangan_pensiun' => 'nullable',
-            'tunjangan_komunikasi' => 'nullable',
-            'tunjangan_pph_21' => 'nullable',
-            'pot_lainnya' => 'nullable',
-            'lembur' => 'nullable'
+            'user_id'                          => 'required',
+            'bulan'                            => 'required',
+            'tahun'                            => 'required',
+            'tanggal_mulai'                    => 'required|date',
+            'tanggal_akhir'                    => 'required|date',
+            'persentase_kehadiran'             => 'required',
+            'no_gaji'                          => 'required',
+            'gaji_pokok'                       => 'nullable',
+            'total_reimbursement'              => 'nullable',
+            'jumlah_tunjangan_transport'       => 'nullable',
+            'uang_tunjangan_transport'         => 'nullable',
+            'total_tunjangan_transport'        => 'nullable',
+            'jumlah_tunjangan_makan'           => 'nullable',
+            'uang_tunjangan_makan'             => 'nullable',
+            'total_tunjangan_makan'            => 'nullable',
+            'total_tunjangan_bpjs_kesehatan'   => 'nullable',
+            'total_tunjangan_bpjs_ketenagakerjaan' => 'nullable',
+            'total_potongan_bpjs_kesehatan'    => 'nullable',
+            'total_potongan_bpjs_ketenagakerjaan'  => 'nullable',
+            'jumlah_mangkir'                   => 'nullable',
+            'uang_mangkir'                     => 'nullable',
+            'total_mangkir'                    => 'nullable',
+            'jumlah_lembur'                    => 'nullable',
+            'uang_lembur'                      => 'nullable',
+            'total_lembur'                     => 'nullable',
+            'jumlah_izin'                      => 'nullable',
+            'uang_izin'                        => 'nullable',
+            'total_izin'                       => 'nullable',
+            'bonus_pribadi'                    => 'nullable',
+            'bonus_team'                       => 'nullable',
+            'bonus_jackpot'                    => 'nullable',
+            'jumlah_terlambat'                 => 'nullable',
+            'uang_terlambat'                   => 'nullable',
+            'total_terlambat'                  => 'nullable',
+            'jumlah_kehadiran'                 => 'nullable',
+            'uang_kehadiran'                   => 'nullable',
+            'total_kehadiran'                  => 'nullable',
+            'saldo_kasbon'                     => 'nullable',
+            'bayar_kasbon'                     => 'nullable',
+            'jumlah_thr'                       => 'nullable',
+            'uang_thr'                         => 'nullable',
+            'total_thr'                        => 'nullable',
+            'loss'                             => 'nullable',
         ]);
 
-        if(!$validated['gaji']){
-            $validated['gaji'] = 0;
+        $moneyFields = [
+            'gaji_pokok','total_reimbursement',
+            'uang_tunjangan_transport','total_tunjangan_transport',
+            'uang_tunjangan_makan','total_tunjangan_makan',
+            'total_tunjangan_bpjs_kesehatan','total_tunjangan_bpjs_ketenagakerjaan',
+            'total_potongan_bpjs_kesehatan','total_potongan_bpjs_ketenagakerjaan',
+            'uang_mangkir','total_mangkir',
+            'uang_lembur','total_lembur',
+            'uang_izin','total_izin',
+            'bonus_pribadi','bonus_team','bonus_jackpot',
+            'uang_terlambat','total_terlambat',
+            'uang_kehadiran','total_kehadiran',
+            'saldo_kasbon','bayar_kasbon',
+            'uang_thr','total_thr',
+            'loss',
+        ];
+
+        foreach ($moneyFields as $field) {
+            $validated[$field] = isset($validated[$field])
+                ? (int) str_replace(',', '', $validated[$field])
+                : 0;
         }
 
-        if(!$validated['setoran_bpjs_kes']){
-            $validated['setoran_bpjs_kes'] = 0;
+        $intFields = [
+            'jumlah_tunjangan_transport','jumlah_tunjangan_makan',
+            'jumlah_mangkir','jumlah_lembur','jumlah_izin',
+            'jumlah_terlambat','jumlah_kehadiran','jumlah_thr',
+        ];
+        foreach ($intFields as $field) {
+            $validated[$field] = isset($validated[$field]) ? (int)$validated[$field] : 0;
         }
 
-        if(!$validated['tunjangan_bpjs_kes']){
-            $validated['tunjangan_bpjs_kes'] = 0;
+        if (!empty($validated['bayar_kasbon']) && $validated['bayar_kasbon'] > 0) {
+            $user = User::find($validated['user_id']);
+            if ($user) {
+                $user->update([
+                    'saldo_kasbon'  => max(0, $user->saldo_kasbon - $validated['bayar_kasbon']),
+                    'bonus_pribadi' => max(0, $user->bonus_pribadi - $validated['bonus_pribadi']),
+                    'bonus_team'    => max(0, $user->bonus_team    - $validated['bonus_team']),
+                    'bonus_jackpot' => max(0, $user->bonus_jackpot - $validated['bonus_jackpot']),
+                ]);
+            }
         }
 
-        if(!$validated['setoran_bpjs_tk']){
-            $validated['setoran_bpjs_tk'] = 0;
-        }
-
-        if(!$validated['tunjangan_bpjs_tk']){
-            $validated['tunjangan_bpjs_tk'] = 0;
-        }
-
-        if(!$validated['tunjangan_pensiun']){
-            $validated['tunjangan_pensiun'] = 0;
-        }
-
-        if(!$validated['tunjangan_komunikasi']){
-            $validated['tunjangan_komunikasi'] = 0;
-        }
-
-        if(!$validated['tunjangan_pph_21']){
-            $validated['tunjangan_pph_21'] = 0;
-        }
-
-        if(!$validated['pot_lainnya']){
-            $validated['pot_lainnya'] = 0;
-        }
-
-        if(!$validated['lembur']){
-            $validated['lembur'] = 0;
-        }
-
-        $validated['gaji'] = str_replace(',', '', $validated['gaji']);
-        $validated['setoran_bpjs_kes'] = str_replace(',', '', $validated['setoran_bpjs_kes']);
-        $validated['tunjangan_bpjs_kes'] = str_replace(',', '', $validated['tunjangan_bpjs_kes']);
-        $validated['setoran_bpjs_tk'] = str_replace(',', '', $validated['setoran_bpjs_tk']);
-        $validated['tunjangan_bpjs_tk'] = str_replace(',', '', $validated['tunjangan_bpjs_tk']);
-        $validated['tunjangan_pensiun'] = str_replace(',', '', $validated['tunjangan_pensiun']);
-        $validated['tunjangan_komunikasi'] = str_replace(',', '', $validated['tunjangan_komunikasi']);
-        $validated['tunjangan_pph_21'] = str_replace(',', '', $validated['tunjangan_pph_21']);
-        $validated['pot_lainnya'] = str_replace(',', '', $validated['pot_lainnya']);
-        $validated['lembur'] = str_replace(',', '', $validated['lembur']);
+        // Ketiga kolom ini GENERATED COLUMN di MariaDB — jangan dikirim
+        unset($validated['total_penjumlahan'], $validated['total_pengurangan'], $validated['grand_total']);
 
         Payroll::create($validated);
-        return redirect('/payroll')->with('success', 'Data Berhasil di Tambahkan');
+
+        return redirect('/payroll')->with('success', 'Data Payroll Berhasil Disimpan!');
     }
 
     public function edit($id)
     {
         return view('payroll.edit', [
             'title' => 'Edit Data Penggajian',
-            'data' => Payroll::find($id)
+            'data'  => Payroll::find($id)
         ]);
     }
+
     public function update(Request $request, $id)
     {
         $payroll = Payroll::find($id);
         $validated = $request->validate([
-            'user_id' => 'required',
-            'bulan' => 'required',
-            'tahun' => 'required',
-            'tanggal_mulai' => 'required',
-            'tanggal_akhir' => 'required',
-            'persentase_kehadiran' => 'required',
-            'no_gaji' => 'required',
-            'gaji_pokok' => 'required',
-            'total_reimbursement' => 'required',
-
-            'jumlah_tunjangan_transport' => 'required',
-            'uang_tunjangan_transport' => 'required',
-            'total_tunjangan_transport' => 'required',
-
-            'jumlah_tunjangan_makan' => 'required',
-            'uang_tunjangan_makan' => 'required',
-            'total_tunjangan_makan' => 'required',
-
-            'total_tunjangan_bpjs_kesehatan' => 'required',
-
+            'user_id'                          => 'required',
+            'bulan'                            => 'required',
+            'tahun'                            => 'required',
+            'tanggal_mulai'                    => 'required',
+            'tanggal_akhir'                    => 'required',
+            'persentase_kehadiran'             => 'required',
+            'no_gaji'                          => 'required',
+            'gaji_pokok'                       => 'required',
+            'total_reimbursement'              => 'required',
+            'jumlah_tunjangan_transport'       => 'required',
+            'uang_tunjangan_transport'         => 'required',
+            'total_tunjangan_transport'        => 'required',
+            'jumlah_tunjangan_makan'           => 'required',
+            'uang_tunjangan_makan'             => 'required',
+            'total_tunjangan_makan'            => 'required',
+            'total_tunjangan_bpjs_kesehatan'   => 'required',
             'total_tunjangan_bpjs_ketenagakerjaan' => 'required',
-
-            'total_potongan_bpjs_kesehatan' => 'required',
-
-            'total_potongan_bpjs_ketenagakerjaan' => 'required',
-
-            'jumlah_mangkir' => 'required',
-            'uang_mangkir' => 'required',
-            'total_mangkir' => 'required',
-            'jumlah_lembur' => 'required',
-            'uang_lembur' => 'required',
-            'total_lembur' => 'required',
-            'jumlah_izin' => 'required',
-            'uang_izin' => 'required',
-            'total_izin' => 'required',
-            'bonus_pribadi' => 'required',
-            'bonus_team' => 'required',
-            'bonus_jackpot' => 'required',
-            'jumlah_terlambat' => 'required',
-            'uang_terlambat' => 'required',
-            'total_terlambat' => 'required',
-            'jumlah_kehadiran' => 'required',
-            'uang_kehadiran' => 'required',
-            'total_kehadiran' => 'required',
-            'saldo_kasbon' => 'required',
-            'bayar_kasbon' => 'required',
-            'jumlah_thr' => 'required',
-            'uang_thr' => 'required',
-            'total_thr' => 'required',
-            'loss' => 'required',
-            'total_penjumlahan' => 'required',
-            'total_pengurangan' => 'required',
-            'grand_total' => 'required',
+            'total_potongan_bpjs_kesehatan'    => 'required',
+            'total_potongan_bpjs_ketenagakerjaan'  => 'required',
+            'jumlah_mangkir'                   => 'required',
+            'uang_mangkir'                     => 'required',
+            'total_mangkir'                    => 'required',
+            'jumlah_lembur'                    => 'required',
+            'uang_lembur'                      => 'required',
+            'total_lembur'                     => 'required',
+            'jumlah_izin'                      => 'required',
+            'uang_izin'                        => 'required',
+            'total_izin'                       => 'required',
+            'bonus_pribadi'                    => 'required',
+            'bonus_team'                       => 'required',
+            'bonus_jackpot'                    => 'nullable',
+            'jumlah_terlambat'                 => 'required',
+            'uang_terlambat'                   => 'required',
+            'total_terlambat'                  => 'required',
+            'jumlah_kehadiran'                 => 'required',
+            'uang_kehadiran'                   => 'required',
+            'total_kehadiran'                  => 'required',
+            'saldo_kasbon'                     => 'required',
+            'bayar_kasbon'                     => 'required',
+            'jumlah_thr'                       => 'required',
+            'uang_thr'                         => 'required',
+            'total_thr'                        => 'required',
+            'loss'                             => 'required',
         ]);
 
-        $validated['gaji_pokok'] = str_replace(',', '', $validated['gaji_pokok']);
-        $validated['total_reimbursement'] = str_replace(',', '', $validated['total_reimbursement']);
+        $moneyFields = [
+            'gaji_pokok','total_reimbursement',
+            'uang_tunjangan_transport','total_tunjangan_transport',
+            'uang_tunjangan_makan','total_tunjangan_makan',
+            'total_tunjangan_bpjs_kesehatan','total_tunjangan_bpjs_ketenagakerjaan',
+            'total_potongan_bpjs_kesehatan','total_potongan_bpjs_ketenagakerjaan',
+            'uang_mangkir','total_mangkir',
+            'uang_lembur','total_lembur',
+            'uang_izin','total_izin',
+            'bonus_pribadi','bonus_team','bonus_jackpot',
+            'uang_terlambat','total_terlambat',
+            'uang_kehadiran','total_kehadiran',
+            'saldo_kasbon','bayar_kasbon',
+            'uang_thr','total_thr',
+            'loss',
+        ];
 
-        $validated['uang_tunjangan_transport'] = str_replace(',', '', $validated['uang_tunjangan_transport']);
-        $validated['total_tunjangan_transport'] = str_replace(',', '', $validated['total_tunjangan_transport']);
-
-        $validated['uang_tunjangan_makan'] = str_replace(',', '', $validated['uang_tunjangan_makan']);
-        $validated['total_tunjangan_makan'] = str_replace(',', '', $validated['total_tunjangan_makan']);
-
-        $validated['total_tunjangan_bpjs_kesehatan'] = str_replace(',', '', $validated['total_tunjangan_bpjs_kesehatan']);
-        $validated['total_tunjangan_bpjs_ketenagakerjaan'] = str_replace(',', '', $validated['total_tunjangan_bpjs_ketenagakerjaan']);
-
-        $validated['total_potongan_bpjs_kesehatan'] = str_replace(',', '', $validated['total_potongan_bpjs_kesehatan']);
-        $validated['total_potongan_bpjs_ketenagakerjaan'] = str_replace(',', '', $validated['total_potongan_bpjs_ketenagakerjaan']);
-
-        $validated['uang_mangkir'] = str_replace(',', '', $validated['uang_mangkir']);
-        $validated['total_mangkir'] = str_replace(',', '', $validated['total_mangkir']);
-        $validated['uang_lembur'] = str_replace(',', '', $validated['uang_lembur']);
-        $validated['total_lembur'] = str_replace(',', '', $validated['total_lembur']);
-        $validated['uang_izin'] = str_replace(',', '', $validated['uang_izin']);
-        $validated['total_izin'] = str_replace(',', '', $validated['total_izin']);
-        $validated['bonus_pribadi'] = str_replace(',', '', $validated['bonus_pribadi']);
-        $validated['bonus_team'] = str_replace(',', '', $validated['bonus_team']);
-        $validated['bonus_jackpot'] = str_replace(',', '', $validated['bonus_jackpot']);
-        $validated['uang_terlambat'] = str_replace(',', '', $validated['uang_terlambat']);
-        $validated['total_terlambat'] = str_replace(',', '', $validated['total_terlambat']);
-        $validated['uang_kehadiran'] = str_replace(',', '', $validated['uang_kehadiran']);
-        $validated['total_kehadiran'] = str_replace(',', '', $validated['total_kehadiran']);
-        $validated['saldo_kasbon'] = str_replace(',', '', $validated['saldo_kasbon']);
-        $validated['bayar_kasbon'] = str_replace(',', '', $validated['bayar_kasbon']);
-        $validated['uang_thr'] = str_replace(',', '', $validated['uang_thr']);
-        $validated['total_thr'] = str_replace(',', '', $validated['total_thr']);
-        $validated['loss'] = str_replace(',', '', $validated['loss']);
-        $validated['total_penjumlahan'] = str_replace(',', '', $validated['total_penjumlahan']);
-        $validated['total_pengurangan'] = str_replace(',', '', $validated['total_pengurangan']);
-        $validated['grand_total'] = str_replace(',', '', $validated['grand_total']);
+        foreach ($moneyFields as $field) {
+            $validated[$field] = (int) str_replace(',', '', $validated[$field] ?? '0');
+        }
 
         $user = User::find($payroll->user_id);
-        $user->update([
-            'saldo_kasbon' => $user->saldo_kasbon + $payroll->bayar_kasbon,
-            'bonus_pribadi' => $user->bonus_pribadi + $payroll->bonus_pribadi,
-            'bonus_team' => $user->bonus_team + $payroll->bonus_team,
-            'bonus_jackpot' => $user->bonus_jackpot + $payroll->bonus_jackpot,
-        ]);
+        if ($user) {
+            $user->update([
+                'saldo_kasbon'  => $user->saldo_kasbon  + $payroll->bayar_kasbon,
+                'bonus_pribadi' => $user->bonus_pribadi + $payroll->bonus_pribadi,
+                'bonus_team'    => $user->bonus_team    + $payroll->bonus_team,
+                'bonus_jackpot' => $user->bonus_jackpot + $payroll->bonus_jackpot,
+            ]);
+        }
+
+        unset($validated['total_penjumlahan'], $validated['total_pengurangan'], $validated['grand_total']);
         $payroll->update($validated);
 
         $user_update = User::find($request->user_id);
-        $user_update->update([
-            'saldo_kasbon' => $user->saldo_kasbon - $validated['bayar_kasbon'],
-            'bonus_pribadi' => $user->bonus_pribadi - $validated['bonus_pribadi'],
-            'bonus_team' => $user->bonus_team - $validated['bonus_team'],
-            'bonus_jackpot' => $user->bonus_jackpot - $validated['bonus_jackpot'],
-        ]);
+        if ($user_update) {
+            $user_update->update([
+                'saldo_kasbon'  => max(0, $user_update->saldo_kasbon  - $validated['bayar_kasbon']),
+                'bonus_pribadi' => max(0, $user_update->bonus_pribadi - $validated['bonus_pribadi']),
+                'bonus_team'    => max(0, $user_update->bonus_team    - $validated['bonus_team']),
+                'bonus_jackpot' => max(0, $user_update->bonus_jackpot - $validated['bonus_jackpot']),
+            ]);
+        }
 
-        return redirect('payroll')->with('success', 'Data Berhasil Diupdate');
+        return redirect('/payroll')->with('success', 'Data Berhasil Diupdate');
     }
 
     public function delete($id)
     {
         $payroll = Payroll::find($id);
         $user = User::find($payroll->user_id);
-        $user->update(['saldo_kasbon' => $user->saldo_kasbon + $payroll->bayar_kasbon]);
+        if ($user) {
+            $user->update(['saldo_kasbon' => $user->saldo_kasbon + $payroll->bayar_kasbon]);
+        }
         $payroll->delete();
         return redirect('/payroll')->with('success', 'Data Berhasil di Hapus');
     }
@@ -265,9 +294,9 @@ class PayrollController extends Controller
     {
         $pdf = Pdf::loadView('payroll.download', [
             'title' => 'Penggajian',
-            'data' => Payroll::find($id)
-        ]);
+            'data'  => Payroll::with('user.Jabatan')->find($id)
+        ])->setPaper('a4', 'portrait');
 
-        return $pdf->stream();
+        return $pdf->stream('slip-gaji-' . $id . '.pdf');
     }
 }
