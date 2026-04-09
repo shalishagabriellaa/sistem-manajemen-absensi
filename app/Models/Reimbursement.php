@@ -24,4 +24,16 @@ class Reimbursement extends Model
     {
         return $this->hasMany(ReimbursementsItem::class);
     }
+
+    // tambah 'project_id' ke $fillable
+protected $fillable = [
+    'project_id', 'user_id', 'kategori_id', 'tanggal', 'event',
+    'status', 'jumlah', 'qty', 'total', 'sisa', 'file_path', 'file_name',
+];
+
+// tambah relasi
+public function project()
+{
+    return $this->belongsTo(Project::class);
+}
 }

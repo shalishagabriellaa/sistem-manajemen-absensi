@@ -44,6 +44,8 @@ use App\Http\Controllers\TargetKinerjaController;
 use App\Http\Controllers\KinerjaPegawaiController;
 use App\Http\Controllers\LaporanKinerjaController;
 use App\Http\Controllers\PengajuanKeuanganController;
+use App\Http\Controllers\BudgetingController;
+use App\Http\Controllers\ProjectController;
 
 /*
 |--------------------------------------------------------------------------
@@ -498,6 +500,26 @@ Route::middleware('auth')->group(function () {
     // ← Halaman daftar wajah per karyawan (sudah ada di controller)
     Route::get('/pegawai/face/{id}',            [karyawanController::class, 'face']);
 });
+
+// Budgeting
+Route::get('/budgeting', [App\Http\Controllers\BudgetingController::class, 'index']);
+Route::get('/budgeting/tambah', [App\Http\Controllers\BudgetingController::class, 'tambah']);
+Route::post('/budgeting/store', [App\Http\Controllers\BudgetingController::class, 'store']);
+Route::get('/budgeting/edit/{id}', [App\Http\Controllers\BudgetingController::class, 'edit']);
+Route::post('/budgeting/update/{id}', [App\Http\Controllers\BudgetingController::class, 'update']);
+Route::post('/budgeting/approval/{id}', [App\Http\Controllers\BudgetingController::class, 'approval']);
+Route::get('/budgeting/delete/{id}', [App\Http\Controllers\BudgetingController::class, 'delete']);
+Route::post('/budgeting/getKategori', [App\Http\Controllers\BudgetingController::class, 'getKategori']);
+
+// Project
+Route::get('/project', [App\Http\Controllers\ProjectController::class, 'index']);
+Route::get('/project/tambah', [App\Http\Controllers\ProjectController::class, 'tambah']);
+Route::post('/project/store', [App\Http\Controllers\ProjectController::class, 'store']);
+Route::get('/project/show/{id}', [App\Http\Controllers\ProjectController::class, 'show']);
+Route::get('/project/edit/{id}', [App\Http\Controllers\ProjectController::class, 'edit']);
+Route::post('/project/update/{id}', [App\Http\Controllers\ProjectController::class, 'update']);
+Route::get('/project/delete/{id}', [App\Http\Controllers\ProjectController::class, 'delete']);
+Route::get('/project/getProjects', [App\Http\Controllers\ProjectController::class, 'getProjects']);
 
 Route::get('/reset', function () {
     Artisan::call('optimize');

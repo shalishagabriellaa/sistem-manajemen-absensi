@@ -18,6 +18,19 @@
                 <form method="post" class="p-4" action="{{ url('/reimbursement/update/'.$reimbursement->id) }}" enctype="multipart/form-data">
                     @method('PUT')
                     @csrf
+
+                    <div class="form-group">
+    <label for="project_id">Project</label>
+    <select class="form-control @error('project_id') is-invalid @enderror" id="project_id" name="project_id">
+        <option value="">-- Pilih Project (Opsional) --</option>
+        @foreach ($project as $p)
+            <option value="{{ $p->id }}" {{ old('project_id', $reimbursement->project_id ?? '') == $p->id ? 'selected' : '' }}>
+                [{{ $p->no_po }}] {{ $p->nama_po }}
+            </option>
+        @endforeach
+    </select>
+    @error('project_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+</div>
                         <div class="form-group">
                             <label for="tanggal" class="float-left">Tanggal</label>
                             <input type="datetime" class="form-control @error('tanggal') is-invalid @enderror" id="tanggal" name="tanggal" autofocus value="{{ old('tanggal', $reimbursement->tanggal) }}">

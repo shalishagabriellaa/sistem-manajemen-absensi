@@ -45,16 +45,19 @@ class ReimbursementController extends Controller
     public function tambah()
     {
         $title = 'Reimbursement';
+        $project = \App\Models\Project::where('status', 'Active')->orderBy('nama_po')->get();
         $user = User::orderBy('name', 'ASC')->get();
         $kategori = Kategori::orderBy('name', 'ASC')->where('active', 1)->get();
         if (auth()->user()->is_admin == 'admin') {
             return view('reimbursement.tambah', compact(
+                'project',
                 'title',
                 'user',
                 'kategori',
             ));
         } else {
             return view('reimbursement.tambahUser', compact(
+                'project',
                 'title',
                 'user',
                 'kategori',
@@ -66,6 +69,7 @@ class ReimbursementController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'project_id' => 'nullable|exists:projects,id',
             'tanggal' => 'required',
             'user_id' => 'required',
             'event' => 'required',
@@ -137,6 +141,7 @@ class ReimbursementController extends Controller
     {
         $reimbursement = Reimbursement::find($id);
         $validated = $request->validate([
+            'project_id' => 'nullable|exists:projects,id',
             'tanggal' => 'required',
             'user_id' => 'required',
             'event' => 'required',
