@@ -52,6 +52,29 @@ class PayrollController extends Controller
         ]);
     }
 
+    /**
+     * AJAX: Ambil data kompensasi pegawai berdasarkan user_id
+     * Route: GET /payroll/get-user-data/{id}
+     */
+    public function getUserData($id)
+    {
+        $user = User::select([
+            'id', 'name', 'rekening', 'nama_rekening', 'tgl_join', 'izin_cuti',
+            'gaji_pokok', 'tunjangan_makan', 'tunjangan_transport',
+            'tunjangan_bpjs_kesehatan', 'tunjangan_bpjs_ketenagakerjaan',
+            'lembur', 'kehadiran', 'thr',
+            'bonus_pribadi', 'bonus_team',
+            'izin', 'terlambat', 'mangkir', 'saldo_kasbon',
+            'potongan_bpjs_kesehatan', 'potongan_bpjs_ketenagakerjaan',
+        ])->find($id);
+
+        if (!$user) {
+            return response()->json(null, 404);
+        }
+
+        return response()->json($user);
+    }
+
     public function tambahProses(Request $request)
     {
         $validated = $request->validate([
@@ -98,12 +121,8 @@ class PayrollController extends Controller
             'uang_thr'                         => 'nullable',
             'total_thr'                        => 'nullable',
             'loss'                             => 'nullable',
-            'total_penjumlahan'                => 'nullable',
-            'total_pengurangan'                => 'nullable',
-            'grand_total'                      => 'nullable',
         ]);
 
-        // Daftar field money yang perlu dibersihkan dari koma
         $moneyFields = [
             'gaji_pokok','total_reimbursement',
             'uang_tunjangan_transport','total_tunjangan_transport',
@@ -118,7 +137,7 @@ class PayrollController extends Controller
             'uang_kehadiran','total_kehadiran',
             'saldo_kasbon','bayar_kasbon',
             'uang_thr','total_thr',
-            'loss','total_penjumlahan','total_pengurangan','grand_total',
+            'loss',
         ];
 
         foreach ($moneyFields as $field) {
@@ -127,7 +146,6 @@ class PayrollController extends Controller
                 : 0;
         }
 
-        // Integer fields default 0
         $intFields = [
             'jumlah_tunjangan_transport','jumlah_tunjangan_makan',
             'jumlah_mangkir','jumlah_lembur','jumlah_izin',
@@ -137,7 +155,6 @@ class PayrollController extends Controller
             $validated[$field] = isset($validated[$field]) ? (int)$validated[$field] : 0;
         }
 
-        // Kurangi saldo kasbon user
         if (!empty($validated['bayar_kasbon']) && $validated['bayar_kasbon'] > 0) {
             $user = User::find($validated['user_id']);
             if ($user) {
@@ -149,6 +166,9 @@ class PayrollController extends Controller
                 ]);
             }
         }
+
+        // Ketiga kolom ini GENERATED COLUMN di MariaDB — jangan dikirim
+        unset($validated['total_penjumlahan'], $validated['total_pengurangan'], $validated['grand_total']);
 
         Payroll::create($validated);
 
@@ -197,7 +217,7 @@ class PayrollController extends Controller
             'total_izin'                       => 'required',
             'bonus_pribadi'                    => 'required',
             'bonus_team'                       => 'required',
-            'bonus_jackpot'                    => 'required',
+            'bonus_jackpot'                    => 'nullable',
             'jumlah_terlambat'                 => 'required',
             'uang_terlambat'                   => 'required',
             'total_terlambat'                  => 'required',
@@ -210,9 +230,6 @@ class PayrollController extends Controller
             'uang_thr'                         => 'required',
             'total_thr'                        => 'required',
             'loss'                             => 'required',
-            'total_penjumlahan'                => 'required',
-            'total_pengurangan'                => 'required',
-            'grand_total'                      => 'required',
         ]);
 
         $moneyFields = [
@@ -229,14 +246,13 @@ class PayrollController extends Controller
             'uang_kehadiran','total_kehadiran',
             'saldo_kasbon','bayar_kasbon',
             'uang_thr','total_thr',
-            'loss','total_penjumlahan','total_pengurangan',
+            'loss',
         ];
 
         foreach ($moneyFields as $field) {
             $validated[$field] = (int) str_replace(',', '', $validated[$field] ?? '0');
         }
 
-        // Kembalikan dulu nilai lama ke user
         $user = User::find($payroll->user_id);
         if ($user) {
             $user->update([
@@ -247,9 +263,9 @@ class PayrollController extends Controller
             ]);
         }
 
+        unset($validated['total_penjumlahan'], $validated['total_pengurangan'], $validated['grand_total']);
         $payroll->update($validated);
 
-        // Kurangi dengan nilai baru
         $user_update = User::find($request->user_id);
         if ($user_update) {
             $user_update->update([
@@ -278,7 +294,7 @@ class PayrollController extends Controller
     {
         $pdf = Pdf::loadView('payroll.download', [
             'title' => 'Penggajian',
-            'data'  => Payroll::find($id)
+            'data'  => Payroll::with('user.Jabatan')->find($id)
         ])->setPaper('a4', 'portrait');
 
         return $pdf->stream('slip-gaji-' . $id . '.pdf');

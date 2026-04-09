@@ -35,7 +35,7 @@
                     <div class="form-row">
                         <div class="col-md-4 mb-3">
                             <label>Pegawai <span class="text-danger">*</span></label>
-                            <select name="user_id" class="form-control selectpicker @error('user_id') is-invalid @enderror" data-live-search="true">
+                            <select name="user_id" id="user_id" class="form-control selectpicker @error('user_id') is-invalid @enderror" data-live-search="true">
                                 <option value="">Pilih Pegawai</option>
                                 @foreach ($data_user as $du)
                                     <option value="{{ $du->id }}" {{ old('user_id') == $du->id ? 'selected' : '' }}>{{ $du->name }}</option>
@@ -94,12 +94,19 @@
                         </div>
                     </div>
 
+                    {{-- Info pegawai otomatis (readonly, untuk referensi) --}}
+                    <div class="form-row" id="info-pegawai-wrap" style="display:none!important">
+                        <div class="col-md-12">
+                            <div class="alert alert-info py-2 px-3 mb-3" id="info-pegawai-box" style="font-size:13px;"></div>
+                        </div>
+                    </div>
+
                     {{-- ===== PENDAPATAN ===== --}}
                     <h5 class="mt-4 mb-3 text-success border-bottom pb-2">Pendapatan / Penjumlahan</h5>
                     <div class="form-row">
                         <div class="col-md-4 mb-3">
                             <label>Gaji Pokok</label>
-                            <input type="text" name="gaji_pokok" class="form-control money @error('gaji_pokok') is-invalid @enderror" value="{{ old('gaji_pokok', '0') }}">
+                            <input type="text" name="gaji_pokok" id="gaji_pokok" class="form-control money @error('gaji_pokok') is-invalid @enderror" value="{{ old('gaji_pokok', '0') }}">
                             @error('gaji_pokok')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-4 mb-3">
@@ -115,7 +122,7 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Uang Tunjangan Transport / Hari</label>
-                            <input type="text" name="uang_tunjangan_transport" class="form-control money" value="{{ old('uang_tunjangan_transport', '0') }}">
+                            <input type="text" name="uang_tunjangan_transport" id="uang_tunjangan_transport" class="form-control money" value="{{ old('uang_tunjangan_transport', '0') }}">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Total Tunjangan Transport</label>
@@ -130,7 +137,7 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Uang Tunjangan Makan / Hari</label>
-                            <input type="text" name="uang_tunjangan_makan" class="form-control money" value="{{ old('uang_tunjangan_makan', '0') }}">
+                            <input type="text" name="uang_tunjangan_makan" id="uang_tunjangan_makan" class="form-control money" value="{{ old('uang_tunjangan_makan', '0') }}">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Total Tunjangan Makan</label>
@@ -141,11 +148,11 @@
                     <div class="form-row">
                         <div class="col-md-6 mb-3">
                             <label>Total Tunjangan BPJS Kesehatan</label>
-                            <input type="text" name="total_tunjangan_bpjs_kesehatan" class="form-control money" value="{{ old('total_tunjangan_bpjs_kesehatan', '0') }}">
+                            <input type="text" name="total_tunjangan_bpjs_kesehatan" id="total_tunjangan_bpjs_kesehatan" class="form-control money" value="{{ old('total_tunjangan_bpjs_kesehatan', '0') }}">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>Total Tunjangan BPJS Ketenagakerjaan</label>
-                            <input type="text" name="total_tunjangan_bpjs_ketenagakerjaan" class="form-control money" value="{{ old('total_tunjangan_bpjs_ketenagakerjaan', '0') }}">
+                            <input type="text" name="total_tunjangan_bpjs_ketenagakerjaan" id="total_tunjangan_bpjs_ketenagakerjaan" class="form-control money" value="{{ old('total_tunjangan_bpjs_ketenagakerjaan', '0') }}">
                         </div>
                     </div>
 
@@ -156,7 +163,7 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Uang Lembur / Jam</label>
-                            <input type="text" name="uang_lembur" class="form-control money" value="{{ old('uang_lembur', '0') }}">
+                            <input type="text" name="uang_lembur" id="uang_lembur" class="form-control money" value="{{ old('uang_lembur', '0') }}">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Total Lembur</label>
@@ -171,7 +178,7 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Uang Bonus Kehadiran</label>
-                            <input type="text" name="uang_kehadiran" class="form-control money" value="{{ old('uang_kehadiran', '0') }}">
+                            <input type="text" name="uang_kehadiran" id="uang_kehadiran" class="form-control money" value="{{ old('uang_kehadiran', '0') }}">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Total Bonus Kehadiran</label>
@@ -180,19 +187,17 @@
                     </div>
 
                     <div class="form-row">
-                        <div class="col-md-4 mb-3">
-                            <label>Bonus Pribadi</label>
-                            <input type="text" name="bonus_pribadi" class="form-control money" value="{{ old('bonus_pribadi', '0') }}">
+                        <div class="col-md-6 mb-3">
+                            <label>Bonus Pribadi (KPI)</label>
+                            <input type="text" name="bonus_pribadi" id="bonus_pribadi" class="form-control money" value="{{ old('bonus_pribadi', '0') }}">
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label>Bonus Team</label>
-                            <input type="text" name="bonus_team" class="form-control money" value="{{ old('bonus_team', '0') }}">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label>Bonus Jackpot</label>
-                            <input type="text" name="bonus_jackpot" class="form-control money" value="{{ old('bonus_jackpot', '0') }}">
+                        <div class="col-md-6 mb-3">
+                            <label>Bonus Team (KPI)</label>
+                            <input type="text" name="bonus_team" id="bonus_team" class="form-control money" value="{{ old('bonus_team', '0') }}">
                         </div>
                     </div>
+                    {{-- bonus_jackpot hidden (tetap dikirim sebagai 0 agar kompatibel dengan DB) --}}
+                    <input type="hidden" name="bonus_jackpot" value="0">
 
                     <div class="form-row">
                         <div class="col-md-4 mb-3">
@@ -201,7 +206,7 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Uang THR</label>
-                            <input type="text" name="uang_thr" class="form-control money" value="{{ old('uang_thr', '0') }}">
+                            <input type="text" name="uang_thr" id="uang_thr" class="form-control money" value="{{ old('uang_thr', '0') }}">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Total THR</label>
@@ -212,7 +217,7 @@
                     <div class="form-row">
                         <div class="col-md-6 mb-3">
                             <label class="font-weight-bold text-success">Total Penjumlahan (Otomatis)</label>
-                            <input type="text" name="total_penjumlahan" id="total_penjumlahan" class="form-control money font-weight-bold" value="{{ old('total_penjumlahan', '0') }}" readonly style="background:#e8f5e9;">
+                            <input type="text" id="total_penjumlahan" class="form-control money font-weight-bold" value="{{ old('total_penjumlahan', '0') }}" readonly style="background:#e8f5e9;">
                         </div>
                     </div>
 
@@ -221,11 +226,11 @@
                     <div class="form-row">
                         <div class="col-md-6 mb-3">
                             <label>Total Potongan BPJS Kesehatan</label>
-                            <input type="text" name="total_potongan_bpjs_kesehatan" class="form-control money" value="{{ old('total_potongan_bpjs_kesehatan', '0') }}">
+                            <input type="text" name="total_potongan_bpjs_kesehatan" id="total_potongan_bpjs_kesehatan" class="form-control money" value="{{ old('total_potongan_bpjs_kesehatan', '0') }}">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>Total Potongan BPJS Ketenagakerjaan</label>
-                            <input type="text" name="total_potongan_bpjs_ketenagakerjaan" class="form-control money" value="{{ old('total_potongan_bpjs_ketenagakerjaan', '0') }}">
+                            <input type="text" name="total_potongan_bpjs_ketenagakerjaan" id="total_potongan_bpjs_ketenagakerjaan" class="form-control money" value="{{ old('total_potongan_bpjs_ketenagakerjaan', '0') }}">
                         </div>
                     </div>
 
@@ -235,8 +240,8 @@
                             <input type="number" name="jumlah_terlambat" class="form-control" value="{{ old('jumlah_terlambat', 0) }}" min="0">
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label>Uang Keterlambatan / Kali</label>
-                            <input type="text" name="uang_terlambat" class="form-control money" value="{{ old('uang_terlambat', '0') }}">
+                            <label>Uang Potongan Keterlambatan / Kali</label>
+                            <input type="text" name="uang_terlambat" id="uang_terlambat" class="form-control money" value="{{ old('uang_terlambat', '0') }}">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Total Potongan Keterlambatan</label>
@@ -250,8 +255,8 @@
                             <input type="number" name="jumlah_mangkir" class="form-control" value="{{ old('jumlah_mangkir', 0) }}" min="0">
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label>Uang Mangkir / Hari</label>
-                            <input type="text" name="uang_mangkir" class="form-control money" value="{{ old('uang_mangkir', '0') }}">
+                            <label>Uang Potongan Mangkir / Hari</label>
+                            <input type="text" name="uang_mangkir" id="uang_mangkir" class="form-control money" value="{{ old('uang_mangkir', '0') }}">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Total Potongan Mangkir</label>
@@ -265,8 +270,8 @@
                             <input type="number" name="jumlah_izin" class="form-control" value="{{ old('jumlah_izin', 0) }}" min="0">
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label>Uang Izin / Hari</label>
-                            <input type="text" name="uang_izin" class="form-control money" value="{{ old('uang_izin', '0') }}">
+                            <label>Uang Potongan Izin / Hari</label>
+                            <input type="text" name="uang_izin" id="uang_izin" class="form-control money" value="{{ old('uang_izin', '0') }}">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Total Potongan Izin</label>
@@ -281,25 +286,25 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>Bayar Kasbon (Potongan Bulan Ini)</label>
-                            <input type="text" name="bayar_kasbon" class="form-control money" value="{{ old('bayar_kasbon', '0') }}">
+                            <input type="text" name="bayar_kasbon" id="bayar_kasbon" class="form-control money" value="{{ old('bayar_kasbon', '0') }}">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="col-md-6 mb-3">
                             <label>Loss</label>
-                            <input type="text" name="loss" class="form-control money" value="{{ old('loss', '0') }}">
+                            <input type="text" name="loss" id="loss" class="form-control money" value="{{ old('loss', '0') }}">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="col-md-6 mb-3">
                             <label class="font-weight-bold text-danger">Total Pengurangan (Otomatis)</label>
-                            <input type="text" name="total_pengurangan" id="total_pengurangan" class="form-control money font-weight-bold" value="{{ old('total_pengurangan', '0') }}" readonly style="background:#ffebee;">
+                            <input type="text" id="total_pengurangan" class="form-control money font-weight-bold" value="{{ old('total_pengurangan', '0') }}" readonly style="background:#ffebee;">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="font-weight-bold" style="font-size:1.1rem;">GRAND TOTAL GAJI DITERIMA</label>
-                            <input type="text" name="grand_total" id="grand_total" class="form-control money font-weight-bold" value="{{ old('grand_total', '0') }}" readonly style="background:#fff3e0; font-size:1.1rem; border:2px solid #ff9800;">
+                            <input type="text" id="grand_total" class="form-control money font-weight-bold" value="{{ old('grand_total', '0') }}" readonly style="background:#fff3e0; font-size:1.1rem; border:2px solid #ff9800;">
                         </div>
                     </div>
 
@@ -318,43 +323,34 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>
 <script>
 $(document).ready(function(){
+
     // Terapkan mask ke semua field money
     $('.money').mask('000,000,000,000,000', { reverse: true });
 
-    // Fungsi ambil nilai numeric dari field money
-    function getVal(id) {
-        var v = $(id).val().replace(/,/g, '');
-        return parseInt(v) || 0;
+    // Flag agar hitung() tidak memanggil dirinya sendiri saat set nilai readonly
+    var isCalculating = false;
+
+    // Ambil nilai numerik dari field (hapus koma mask)
+    function getVal(sel) {
+        return parseInt($(sel).val().replace(/,/g, '')) || 0;
     }
 
-    // Hitung total = jumlah * uang
-    function hitungTotal(jumlahId, uangId, totalId) {
-        var jml = parseInt($(jumlahId).val()) || 0;
-        var uang = getVal(uangId);
-        var total = jml * uang;
-        // Set nilai ke field total (tanpa mask dulu, lalu trigger mask)
-        $(totalId).val(total).trigger('input');
-        hitung();
+    // Set nilai ke field readonly (tanpa trigger agar tidak loop)
+    function setReadonly(id, val) {
+        // Gunakan jquery.mask setVal jika tersedia, fallback ke val()
+        var $el = $(id);
+        $el.val(val);
+        // Paksa mask memformat ulang nilai
+        if (typeof $el.data('mask') !== 'undefined') {
+            $el.trigger('blur');
+        }
     }
 
-    // Binding event jumlah * uang
-    function bindHitung(jumlahSel, uangSel, totalSel) {
-        $(jumlahSel + ', ' + uangSel).on('input keyup', function(){
-            hitungTotal(jumlahSel, uangSel, totalSel);
-        });
-    }
-
-    bindHitung('[name=jumlah_tunjangan_transport]', '[name=uang_tunjangan_transport]', '[name=total_tunjangan_transport]');
-    bindHitung('[name=jumlah_tunjangan_makan]',     '[name=uang_tunjangan_makan]',     '[name=total_tunjangan_makan]');
-    bindHitung('[name=jumlah_lembur]',              '[name=uang_lembur]',              '[name=total_lembur]');
-    bindHitung('[name=jumlah_kehadiran]',           '[name=uang_kehadiran]',           '[name=total_kehadiran]');
-    bindHitung('[name=jumlah_terlambat]',           '[name=uang_terlambat]',           '[name=total_terlambat]');
-    bindHitung('[name=jumlah_mangkir]',             '[name=uang_mangkir]',             '[name=total_mangkir]');
-    bindHitung('[name=jumlah_izin]',                '[name=uang_izin]',                '[name=total_izin]');
-    bindHitung('[name=jumlah_thr]',                 '[name=uang_thr]',                 '[name=total_thr]');
-
-    // Hitung grand total
+    // Hitung semua total — dipanggil setiap kali ada perubahan input
     function hitung() {
+        if (isCalculating) return;
+        isCalculating = true;
+
         var penjumlahan =
             getVal('[name=gaji_pokok]') +
             getVal('[name=total_reimbursement]') +
@@ -366,7 +362,6 @@ $(document).ready(function(){
             getVal('[name=total_kehadiran]') +
             getVal('[name=bonus_pribadi]') +
             getVal('[name=bonus_team]') +
-            getVal('[name=bonus_jackpot]') +
             getVal('[name=total_thr]');
 
         var pengurangan =
@@ -378,13 +373,82 @@ $(document).ready(function(){
             getVal('[name=bayar_kasbon]') +
             getVal('[name=loss]');
 
-        $('#total_penjumlahan').val(penjumlahan).trigger('input');
-        $('#total_pengurangan').val(pengurangan).trigger('input');
-        $('#grand_total').val(Math.max(0, penjumlahan - pengurangan)).trigger('input');
+        var grandTotal = Math.max(0, penjumlahan - pengurangan);
+
+        // Set langsung ke field readonly — TANPA .trigger('input')
+        $('#total_penjumlahan').val(penjumlahan.toLocaleString('id-ID'));
+        $('#total_pengurangan').val(pengurangan.toLocaleString('id-ID'));
+        $('#grand_total').val(grandTotal.toLocaleString('id-ID'));
+
+        isCalculating = false;
     }
 
-    // Trigger hitung saat field money berubah
-    $(document).on('input keyup', '.money', hitung);
+    // Hitung jumlah * uang lalu update field total-nya, kemudian hitung grand
+    function hitungSubtotal(jumlahSel, uangSel, totalSel) {
+        var jml  = parseInt($(jumlahSel).val()) || 0;
+        var uang = getVal(uangSel);
+        var total = jml * uang;
+        // Set ke field readonly subtotal tanpa trigger
+        $(totalSel).val(total.toLocaleString('id-ID'));
+        hitung();
+    }
+
+    function bindSubtotal(jumlahSel, uangSel, totalSel) {
+        $(jumlahSel + ', ' + uangSel).on('input keyup', function(){
+            hitungSubtotal(jumlahSel, uangSel, totalSel);
+        });
+    }
+
+    bindSubtotal('[name=jumlah_tunjangan_transport]', '[name=uang_tunjangan_transport]', '[name=total_tunjangan_transport]');
+    bindSubtotal('[name=jumlah_tunjangan_makan]',     '[name=uang_tunjangan_makan]',     '[name=total_tunjangan_makan]');
+    bindSubtotal('[name=jumlah_lembur]',              '[name=uang_lembur]',              '[name=total_lembur]');
+    bindSubtotal('[name=jumlah_kehadiran]',           '[name=uang_kehadiran]',           '[name=total_kehadiran]');
+    bindSubtotal('[name=jumlah_terlambat]',           '[name=uang_terlambat]',           '[name=total_terlambat]');
+    bindSubtotal('[name=jumlah_mangkir]',             '[name=uang_mangkir]',             '[name=total_mangkir]');
+    bindSubtotal('[name=jumlah_izin]',                '[name=uang_izin]',                '[name=total_izin]');
+    bindSubtotal('[name=jumlah_thr]',                 '[name=uang_thr]',                 '[name=total_thr]');
+
+    // Trigger hitung saat field money yang BUKAN readonly berubah
+    // (exclude field readonly agar tidak loop)
+    $(document).on('input keyup', '.money:not([readonly])', function(){
+        hitung();
+    });
+
+    // ── AJAX: isi data pegawai otomatis saat pilih pegawai ──────────────────
+    $('#user_id').on('change', function(){
+        var userId = $(this).val();
+        if (!userId) return;
+
+        $.get('/payroll/get-user-data/' + userId, function(res){
+            if (!res) return;
+
+            // Set field langsung dengan nilai integer (mask akan format saat blur)
+            var fields = {
+                '[name=gaji_pokok]':                           res.gaji_pokok || 0,
+                '[name=uang_tunjangan_transport]':             res.tunjangan_transport || 0,
+                '[name=uang_tunjangan_makan]':                 res.tunjangan_makan || 0,
+                '[name=total_tunjangan_bpjs_kesehatan]':       res.tunjangan_bpjs_kesehatan || 0,
+                '[name=total_tunjangan_bpjs_ketenagakerjaan]': res.tunjangan_bpjs_ketenagakerjaan || 0,
+                '[name=uang_lembur]':                          res.lembur || 0,
+                '[name=uang_kehadiran]':                       res.kehadiran || 0,
+                '[name=bonus_pribadi]':                        res.bonus_pribadi || 0,
+                '[name=bonus_team]':                           res.bonus_team || 0,
+                '[name=uang_thr]':                             res.thr || 0,
+                '[name=total_potongan_bpjs_kesehatan]':        res.potongan_bpjs_kesehatan || 0,
+                '[name=total_potongan_bpjs_ketenagakerjaan]':  res.potongan_bpjs_ketenagakerjaan || 0,
+                '[name=uang_terlambat]':                       res.terlambat || 0,
+                '[name=uang_mangkir]':                         res.mangkir || 0,
+                '[name=uang_izin]':                            res.izin || 0,
+                '[name=saldo_kasbon]':                         res.saldo_kasbon || 0,
+            };
+
+            $.each(fields, function(sel, val){
+                $(sel).val(val).trigger('blur'); // blur agar mask format ulang
+            });
+
+            hitung();
+        });
+    });
 
     // Inisialisasi awal
     hitung();

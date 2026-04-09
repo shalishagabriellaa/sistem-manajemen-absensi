@@ -307,6 +307,8 @@ Route::delete('/tunjangan/{id}/delete', [TunjanganController::class, 'delete'])-
 Route::get('/payroll', [PayrollController::class, 'index'])->middleware('auth');
 Route::get('/payroll/tambah', [PayrollController::class, 'tambah'])->middleware('admin');
 Route::post('/payroll/tambah-proses', [PayrollController::class, 'tambahProses'])->middleware('admin');
+// ↓ TAMBAHKAN DI SINI (harus sebelum /{id}/)
+Route::get('/payroll/get-user-data/{id}', [PayrollController::class, 'getUserData'])->middleware('admin');
 Route::get('/payroll/{id}/edit', [PayrollController::class, 'edit'])->middleware('admin');
 Route::get('/payroll/{id}/download', [PayrollController::class, 'download'])->middleware('auth');
 Route::put('/payroll/{id}/update', [PayrollController::class, 'update'])->middleware('admin');
