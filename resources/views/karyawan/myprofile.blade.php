@@ -1,56 +1,172 @@
 @extends('templates.dashboard')
 @section('isi')
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+*{
+font-family:'Plus Jakarta Sans',sans-serif;
+}
+
+:root{
+--dash-blue:#3b4cca;
+--dash-blue-dk:#2d3db4;
+--dash-blue-lt:#5c6ed4;
+
+--slate-50:#f8fafc;
+--slate-100:#f1f5f9;
+--slate-200:#e2e8f0;
+--slate-300:#cbd5e1;
+--slate-500:#64748b;
+--slate-700:#334155;
+}
+
+/* card modern */
+
+.profile-card{
+border-radius:16px;
+border:1px solid var(--slate-200);
+box-shadow:0 6px 20px rgba(0,0,0,0.06);
+padding:24px;
+background:white;
+}
+
+/* header */
+
+.profile-title{
+font-size:20px;
+font-weight:700;
+color:var(--slate-700);
+margin-bottom:20px;
+display:flex;
+align-items:center;
+gap:8px;
+}
+
+/* avatar */
+
+.profile-avatar{
+width:120px;
+height:120px;
+border-radius:50%;
+object-fit:cover;
+border:4px solid var(--slate-100);
+}
+
+/* form */
+
+.form-label{
+font-weight:600;
+color:var(--slate-700);
+font-size:14px;
+}
+
+.form-control{
+border-radius:10px;
+border:1px solid var(--slate-200);
+}
+
+.form-control:focus{
+border-color:var(--dash-blue);
+box-shadow:0 0 0 2px rgba(59,76,202,0.15);
+}
+
+/* button */
+
+.btn-primary{
+background:linear-gradient(135deg,var(--dash-blue),var(--dash-blue-dk));
+border:none;
+border-radius:10px;
+font-weight:600;
+padding:10px 20px;
+}
+
+.btn-primary:hover{
+opacity:.9;
+}
+
+/* section title */
+
+.section-title{
+font-size:18px;
+font-weight:700;
+color:var(--dash-blue);
+margin-top:20px;
+margin-bottom:10px;
+}
+
+.profile-card{
+border-radius:16px;
+border:1px solid var(--slate-200);
+box-shadow:0 4px 14px rgba(0,0,0,0.05);
+padding:20px;
+background:white;
+}
+</style>
+        
+<br>    
     <div class="row">
         <div class="col-md-12 m project-list">
-            <div class="card">
-                <div class="row">
-                    <div class="col-md-6 p-0 d-flex mt-2">
-                        <h4>{{ $title }}</h4>
-                    </div>
+            <div class="profile-card mb-4">
+
+<div class="profile-title mb-3 style="padding:12px 20px;">
+<i class="fas fa-user-circle" style="color:#3b4cca"></i>
+{{ $title }}
+</div>
                     <div class="col-md-6 p-0">
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card card-primary card-outline">
-                <div class="card-body box-profile">
-                    <div class="text-center">
-                        @if(auth()->user()->foto_karyawan == null)
-                            <img class="profile-user-img img-fluid img-circle" src="{{ url('assets/img/foto_default.jpg') }}" alt="User profile picture">
-                        @else
-                            <img class="profile-user-img img-fluid img-circle" src="{{ url('storage/'.auth()->user()->foto_karyawan) }}" alt="User profile picture">
-                        @endif
-                    </div>
+        <div class="row">
 
-                    <h3 class="profile-username text-center">{{ auth()->user()->name }}</h3>
+    <!-- LEFT PROFILE CARD -->
+    <div class="col-md-3">
+        <div class="profile-card text-center">
 
-                    <p class="text-muted text-center">{{ auth()->user()->Jabatan->nama_jabatan }}</p>
+            @if(auth()->user()->foto_karyawan == null)
+            <img class="profile-avatar"
+            src="{{ url('assets/img/foto_default.jpg') }}">
+            @else
+            <img class="profile-avatar"
+            src="{{ url('storage/'.auth()->user()->foto_karyawan) }}">
+            @endif
 
-                    <ul class="list-group list-group-unbordered mb-3">
-                        <li class="list-group-item">
-                        <b>Email</b> <a class="float-end" style="color: black">{{ auth()->user()->email }}</a>
-                        </li>
-                        <li class="list-group-item">
-                        <b>Username</b> <a class="float-end" style="color: black">{{ auth()->user()->username }}</a>
-                        </li>
-                        <li class="list-group-item">
-                        <b>Telepon</b> <a class="float-end" style="color: black">{{ auth()->user()->telepon }}</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+            <h3 class="profile-username mt-3">{{ auth()->user()->name }}</h3>
+
+            <p class="text-muted">
+                {{ auth()->user()->Jabatan->nama_jabatan }}
+            </p>
+
+            <ul class="list-group list-group-unbordered mb-3 text-start">
+                <li class="list-group-item">
+                <b>Email</b>
+                <span class="float-end">{{ auth()->user()->email }}</span>
+                </li>
+
+                <li class="list-group-item">
+                <b>Username</b>
+                <span class="float-end">{{ auth()->user()->username }}</span>
+                </li>
+
+                <li class="list-group-item">
+                <b>Telepon</b>
+                <span class="float-end">{{ auth()->user()->telepon }}</span>
+                </li>
+            </ul>
+
         </div>
-        <div class="col-md-9">
-            <div class="card">
-                <div class="card-header p-2">
-                    <ul class="nav nav-pills">
-                        <li class="nav-item"><a class="nav-link active" href="#settings" data-toggle="tab">Settings</a></li>
-                    </ul>
-                </div>
+    </div>
+
+
+    <!-- RIGHT FORM -->
+    <div class="col-md-9">
+        <div class="profile-card">
+
+            <form method="post" action="{{ url('/my-profile/update/'.auth()->user()->id) }}" enctype="multipart/form-data">
+                
                 <div class="card-body">
-                    <div class="tab-content">
-                        <div class="active tab-pane" id="settings">
+                    <div class="profile-card">
                             <form method="post" action="{{ url('/my-profile/update/'.auth()->user()->id) }}" enctype="multipart/form-data">
                                 @method('put')
                                 @csrf
@@ -433,7 +549,9 @@
                                 </div>
 
                                 <div class="col mb-4">
-                                    <h3 style="color: blue">Cuti & Izin</h3>
+                                    <div class="section-title">
+Cuti & Izin
+</div>
                                 </div>
                                 <div class="row">
                                     <div class="col mb-4">
@@ -476,7 +594,9 @@
                                     </div>
                                 </div>
                                 <div class="col mb-4">
-                                    <h3 style="color: blue">Penjumlahan Gaji</h3>
+                                    <div class="section-title">
+Penjumlahan Gaji
+</div>
                                 </div>
                                 <div class="row">
                                     <div class="col mb-4">
@@ -599,7 +719,9 @@
                                     </div>
                                 </div>
                                 <div class="col mb-4">
-                                    <h3 style="color: blue">Pengurangan Gaji</h3>
+                                    <div class="section-title">
+Pengurangan Gaji
+</div>
                                 </div>
                                 <div class="row">
                                     <div class="col mb-4">
@@ -668,6 +790,9 @@
                 </div>
             </div>
         </div>
+        
+        <br>
+    
     </div>
     @push('script')
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>

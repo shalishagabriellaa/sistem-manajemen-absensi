@@ -140,6 +140,7 @@
 
 <div class="container-fluid">
 
+<br>
 <div class="card notification-card">
 
 <div class="notification-header">
