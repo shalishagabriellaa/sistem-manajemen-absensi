@@ -210,8 +210,7 @@ tbody .sticky-right {
                                             @if ($kontrak->tanggal)
                                                 @php
                                                     Carbon\Carbon::setLocale('id');
-                                                    $tanggal = Carbon\Carbon::createFromFormat('Y-m-d', $kontrak->tanggal);
-                                                    $new_tanggal = $tanggal->translatedFormat('d F Y');
+                                                    $new_tanggal = \Carbon\Carbon::parse($kontrak->tanggal)->translatedFormat('d F Y');
                                                 @endphp
                                                 {{ $new_tanggal }}
                                             @else
@@ -223,8 +222,7 @@ tbody .sticky-right {
                                             @if ($kontrak->tanggal_mulai)
                                                 @php
                                                     Carbon\Carbon::setLocale('id');
-                                                    $tanggal_mulai = Carbon\Carbon::createFromFormat('Y-m-d', $kontrak->tanggal_mulai);
-                                                    $new_tanggal_mulai = $tanggal_mulai->translatedFormat('d F Y');
+                                                    $new_tanggal_mulai = \Carbon\Carbon::parse($kontrak->tanggal_mulai)->translatedFormat('d F Y');
                                                 @endphp
                                                 {{ $new_tanggal_mulai }}
                                             @else
@@ -235,8 +233,7 @@ tbody .sticky-right {
                                             @if ($kontrak->tanggal_selesai)
                                                 @php
                                                     Carbon\Carbon::setLocale('id');
-                                                    $tanggal_selesai = Carbon\Carbon::createFromFormat('Y-m-d', $kontrak->tanggal_selesai);
-                                                    $new_tanggal_selesai = $tanggal_selesai->translatedFormat('d F Y');
+                                                    $new_tanggal_selesai = \Carbon\Carbon::parse($kontrak->tanggal_selesai)->translatedFormat('d F Y');
                                                 @endphp
                                                 {{ $new_tanggal_selesai }}
                                             @else
@@ -246,8 +243,8 @@ tbody .sticky-right {
                                         <td>
                                             @php
                                                 if ($kontrak->tanggal_mulai && $kontrak->tanggal_selesai) {
-                                                    $startDate = Carbon\Carbon::createFromFormat('Y-m-d', $kontrak->tanggal_mulai, config('app.timezone'));
-                                                    $currentDate = Carbon\Carbon::createFromFormat('Y-m-d', $kontrak->tanggal_selesai, config('app.timezone'));
+                                                    $startDate = \Carbon\Carbon::parse($kontrak->tanggal_mulai);
+$currentDate = \Carbon\Carbon::parse($kontrak->tanggal_selesai);
                                                     if ($startDate->greaterThan($currentDate)) {
                                                         $periode = "0 Tahun, 0 Bulan, 0 Hari.";
                                                     } else {
@@ -263,7 +260,7 @@ tbody .sticky-right {
                                         <td>{!! $kontrak->keterangan ? nl2br(e($kontrak->keterangan)) : '-' !!}</td>
                                         <td class="sticky-right">
                                             @if ($kontrak->kontrak_file_path)
-                                                <a href="{{ url('/storage/'.$kontrak->kontrak_file_path) }}" class="download-link">
+                                                <a href="{{ asset('storage/'.$kontrak->kontrak_file_path) }}" class="download-link">
                                                     <i class="fa fa-download"></i>
                                                     {{ $kontrak->kontrak_file_name }}
                                                 </a>

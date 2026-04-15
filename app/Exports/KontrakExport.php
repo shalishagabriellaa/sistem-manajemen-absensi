@@ -57,25 +57,22 @@ class KontrakExport implements FromQuery, WithColumnFormatting, WithMapping, Wit
     public function map($model): array
     {
         if ($model->tanggal) {
-            Carbon::setLocale('id');
-            $tanggal = Carbon::createFromFormat('Y-m-d', $model->tanggal);
-            $new_tanggal = $tanggal->translatedFormat('d F Y');
-        } else {
-            $new_tanggal = '-';
-        }
+    Carbon::setLocale('id');
+    $new_tanggal = Carbon::parse($model->tanggal)->translatedFormat('d F Y');
+} else {
+    $new_tanggal = '-';
+}
 
         if ($model->tanggal_mulai) {
             Carbon::setLocale('id');
-            $tanggal_mulai = Carbon::createFromFormat('Y-m-d', $model->tanggal_mulai);
-            $new_tanggal_mulai = $tanggal_mulai->translatedFormat('d F Y');
+            $new_tanggal_mulai = Carbon::parse($model->tanggal_mulai)->translatedFormat('d F Y');
         } else {
             $new_tanggal_mulai = '-';
         }
 
         if ($model->tanggal_selesai) {
             Carbon::setLocale('id');
-            $tanggal_selesai = Carbon::createFromFormat('Y-m-d', $model->tanggal_selesai);
-            $new_tanggal_selesai = $tanggal_selesai->translatedFormat('d F Y');
+            $new_tanggal_selesai = Carbon::parse($model->tanggal_selesai)->translatedFormat('d F Y');
         } else {
             $new_tanggal_selesai = '-';
         }

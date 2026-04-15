@@ -10,6 +10,7 @@ use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\Style\Font;
 use PhpOffice\PhpWord\Shared\Converter;
+use App\Exports\KontrakExport;
 
 class KontrakController extends Controller
 {
