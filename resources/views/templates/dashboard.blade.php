@@ -357,7 +357,7 @@
           <div class="container-fluid">
             <div class="row">
               <div class="col-md-6 p-0 footer-left">
-                <p class="mb-0">Copyright © {{ date('Y') }} Code Null. All rights reserved.</p>
+                <p class="mb-0">Copyright © {{ date('Y') }} Metech. All rights reserved.</p>
               </div>
             </div>
           </div>
