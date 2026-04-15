@@ -6,9 +6,272 @@ use App\Models\User;
 use App\Models\Payroll;
 use App\Models\StatusPtkp;
 use Illuminate\Http\Request;
+use App\Models\MappingShift;
+use Carbon\Carbon;
+use App\Notifications\PayrollGenerated;
+use Illuminate\Support\Facades\Notification;
 
 class PayrollController extends Controller
 {
+public function generate()
+{
+    return view('payroll.generate', [
+        'title'     => 'Generate Slip Gaji',
+        'data_user' => User::select('id', 'name')->orderBy('name')->get(),
+    ]);
+}
+
+public function generateProses(Request $request)
+{
+    $request->validate([
+        'user_id'       => 'required|exists:users,id',
+        'tanggal_mulai' => 'required|date',
+        'tanggal_akhir' => 'required|date|after_or_equal:tanggal_mulai',
+        'bayar_kasbon'  => 'nullable|integer|min:0',
+        'total_thr'     => 'nullable|integer|min:0',
+        'loss'          => 'nullable|integer|min:0',
+    ]);
+
+    $user       = User::find($request->user_id);
+    $tglMulai   = Carbon::parse($request->tanggal_mulai);
+    $tglAkhir   = Carbon::parse($request->tanggal_akhir);
+    $bulan      = $tglMulai->month;
+    $tahun      = $tglMulai->year;
+
+    // ===============================
+    // ABSENSI DARI mapping_shifts
+    // ===============================
+
+    $absensi = MappingShift::where('user_id', $user->id)
+        ->whereBetween('tanggal', [$tglMulai->toDateString(), $tglAkhir->toDateString()])
+        ->get();
+
+    $hariMasuk = $absensi
+    ->whereNotNull('jam_absen')
+    ->count();
+
+    $hariMangkir = $absensi
+        ->whereNull('jam_absen')
+        ->where('shift_id','!=',1)
+        ->count();
+
+    $jumlahTerlambat = $absensi
+        ->whereNotNull('jam_absen')
+        ->filter(fn($a) => (int)$a->telat > 0)
+        ->count();
+
+    $jumlahIzin = 0;
+
+    $totalHariKerja = $absensi
+        ->where('shift_id','!=',1)
+        ->count();
+    $hariEfektif = $totalHariKerja - $jumlahIzin;
+
+    $persen = $hariEfektif > 0
+        ? round(($hariMasuk / $hariEfektif) * 100, 2)
+        : 0;
+
+    // ===============================
+    // LEMBUR
+    // ===============================
+
+    $totalJamLembur = (int) \App\Models\Lembur::where('user_id', $user->id)
+        ->where('status', 'approved')
+        ->whereBetween('tanggal', [$tglMulai->toDateString(), $tglAkhir->toDateString()])
+        ->sum('total_lembur');
+
+    // ===============================
+    // REIMBURSEMENT
+    // ===============================
+
+    $totalReimburse = \App\Models\Reimbursement::where('user_id', $user->id)
+        ->where('status', 'Approved')
+        ->whereBetween('tanggal', [$tglMulai->toDateString(), $tglAkhir->toDateString()])
+        ->sum('total');
+
+    // ===============================
+    // KOMPONEN GAJI USER
+    // ===============================
+
+    $gajiPokok      = $user->gaji_pokok ?? 0;
+    $uangMakan      = $user->tunjangan_makan ?? 0;
+    $uangTransport  = $user->tunjangan_transport ?? 0;
+
+    $totalMakan     = $uangMakan * $hariMasuk;
+    $totalTransport = $uangTransport * $hariMasuk;
+
+    $uangLembur     = $user->lembur ?? 0;
+    $totalLembur    = $uangLembur * $totalJamLembur;
+
+    $uangKehadiran  = $user->kehadiran ?? 0;
+    $totalKehadiran = ($persen == 100) ? $uangKehadiran : 0;
+
+    $bonusPribadi   = $user->bonus_pribadi ?? 0;
+    $bonusTeam      = $user->bonus_team ?? 0;
+    $bonusJackpot   = $user->bonus_jackpot ?? 0;
+
+    // ===============================
+    // BPJS
+    // ===============================
+
+    $tunjBpjsKesehatan       = $user->tunjangan_bpjs_kesehatan ?? 0;
+    $tunjBpjsKetenagakerjaan = $user->tunjangan_bpjs_ketenagakerjaan ?? 0;
+
+    $potBpjsKesehatan        = $user->potongan_bpjs_kesehatan ?? 0;
+    $potBpjsKetenagakerjaan  = $user->potongan_bpjs_ketenagakerjaan ?? 0;
+
+    // ===============================
+    // POTONGAN ABSENSI
+    // ===============================
+
+    $uangMangkir    = $user->mangkir ?? 0;
+    $totalMangkir   = $uangMangkir * $hariMangkir;
+
+    $uangIzin       = $user->izin ?? 0;
+    $totalIzin      = $uangIzin * $jumlahIzin;
+
+    $uangTerlambat  = $user->terlambat ?? 0;
+    $totalTerlambat = $uangTerlambat * $jumlahTerlambat;
+
+    // ===============================
+    // KASBON
+    // ===============================
+
+    $saldoKasbon    = $user->saldo_kasbon ?? 0;
+
+    $bayarKasbon = min((int)($request->bayar_kasbon ?? $saldoKasbon), $saldoKasbon);
+
+    // ===============================
+    // THR DAN LOSS
+    // ===============================
+
+    $totalThr    = (int)($request->total_thr ?? 0);
+    $uangThr     = $user->thr ?? 0;
+    $loss        = (int)($request->loss ?? 0);
+
+    // ===============================
+    // TOTAL PENDAPATAN
+    // ===============================
+
+    $totalPendapatan =
+        $gajiPokok +
+        $totalReimburse +
+        $totalTransport +
+        $totalMakan +
+        $tunjBpjsKesehatan +
+        $tunjBpjsKetenagakerjaan +
+        $totalLembur +
+        $totalKehadiran +
+        $bonusPribadi +
+        $bonusTeam +
+        $bonusJackpot +
+        $totalThr;
+
+    // ===============================
+    // TOTAL POTONGAN
+    // ===============================
+
+    $totalPotongan =
+        $potBpjsKesehatan +
+        $potBpjsKetenagakerjaan +
+        $totalTerlambat +
+        $totalMangkir +
+        $totalIzin +
+        $bayarKasbon +
+        $loss;
+
+    $grandTotal = max(0, $totalPendapatan - $totalPotongan);
+
+    // ===============================
+    // NOMOR SLIP
+    // ===============================
+
+    $counter = \App\Models\Counter::where('name', 'Gaji')->first();
+    $noUrut  = str_pad(($counter->counter ?? 0) + 1, 4, '0', STR_PAD_LEFT);
+
+    $noGaji  = 'GJ/' . $tahun . '/' . str_pad($bulan, 2, '0', STR_PAD_LEFT) . '/' . $noUrut;
+
+    if ($counter) $counter->increment('counter');
+
+    // ===============================
+    // SIMPAN PAYROLL
+    // ===============================
+
+    $payroll = Payroll::create([
+        'user_id'      => $user->id,
+        'tanggal_mulai'=> $tglMulai->toDateString(),
+        'tanggal_akhir'=> $tglAkhir->toDateString(),
+        'bulan'        => $bulan,
+        'tahun'        => $tahun,
+        'persentase_kehadiran' => $persen,
+        'no_gaji'      => $noGaji,
+
+        'gaji_pokok'   => $gajiPokok,
+        'total_reimbursement' => $totalReimburse,
+
+        'jumlah_tunjangan_transport' => $hariMasuk,
+        'uang_tunjangan_transport'   => $uangTransport,
+        'total_tunjangan_transport'  => $totalTransport,
+
+        'jumlah_tunjangan_makan' => $hariMasuk,
+        'uang_tunjangan_makan'   => $uangMakan,
+        'total_tunjangan_makan'  => $totalMakan,
+
+        'total_tunjangan_bpjs_kesehatan' => $tunjBpjsKesehatan,
+        'total_tunjangan_bpjs_ketenagakerjaan' => $tunjBpjsKetenagakerjaan,
+
+        'total_potongan_bpjs_kesehatan' => $potBpjsKesehatan,
+        'total_potongan_bpjs_ketenagakerjaan' => $potBpjsKetenagakerjaan,
+
+        'jumlah_mangkir' => $hariMangkir,
+        'uang_mangkir'   => $uangMangkir,
+        'total_mangkir'  => $totalMangkir,
+
+        'jumlah_lembur'  => $totalJamLembur,
+        'uang_lembur'    => $uangLembur,
+        'total_lembur'   => $totalLembur,
+
+        'jumlah_izin'    => $jumlahIzin,
+        'uang_izin'      => $uangIzin,
+        'total_izin'     => $totalIzin,
+
+        'bonus_pribadi'  => $bonusPribadi,
+        'bonus_team'     => $bonusTeam,
+        'bonus_jackpot'  => $bonusJackpot,
+
+        'jumlah_terlambat' => $jumlahTerlambat,
+        'uang_terlambat'   => $uangTerlambat,
+        'total_terlambat'  => $totalTerlambat,
+
+        'jumlah_kehadiran' => $persen == 100 ? 1 : 0,
+        'uang_kehadiran'   => $uangKehadiran,
+        'total_kehadiran'  => $totalKehadiran,
+
+        'saldo_kasbon' => $saldoKasbon,
+        'bayar_kasbon' => $bayarKasbon,
+
+        'jumlah_thr' => $totalThr > 0 ? 1 : 0,
+        'uang_thr'   => $uangThr,
+        'total_thr'  => $totalThr,
+
+        'loss' => $loss,
+
+        'total_penjumlahan' => $totalPendapatan,
+        'total_pengurangan' => $totalPotongan,
+        'grand_total'       => $grandTotal,
+    ]);
+
+    $user->notify(new \App\Notifications\PayrollGenerated($payroll));
+
+    if ($bayarKasbon > 0) {
+        $user->update([
+            'saldo_kasbon' => max(0, $saldoKasbon - $bayarKasbon)
+        ]);
+    }
+
+    return redirect('/payroll/' . $payroll->id . '/download')
+        ->with('success', 'Slip gaji berhasil digenerate!');
+}
     public function index()
     {
         $bulan = request()->input('bulan');
@@ -197,6 +460,14 @@ class PayrollController extends Controller
         }
 
         Payroll::create($validated);
+
+        $userNotif = User::find($validated['user_id']);
+if ($userNotif) {
+    $userNotif->notify(new \App\Notifications\PayrollGenerated($payroll));
+}
+
+// ubah juga Payroll::create($validated) jadi:
+$payroll = Payroll::create($validated);
 
         return redirect('/payroll')->with('success', 'Data Payroll Berhasil Disimpan!');
     }

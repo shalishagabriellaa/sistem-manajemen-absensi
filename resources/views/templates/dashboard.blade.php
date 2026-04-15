@@ -30,7 +30,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url('/html/assets/css/vendors/prism.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url('/html/assets/css/vendors/bootstrap.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url('/html/assets/css/style.css') }}">
-    <link id="color" rel="stylesheet" href="{{ url('/html/assets/css/color-1.css" media="screen') }}">
+    <link id="color" rel="stylesheet" href="{{ url('/html/assets/css/color-1.css') }}" media="screen">
     <link rel="stylesheet" type="text/css" href="{{ url('/html/assets/css/responsive.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url('/html/assets/css/vendors/calendar.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url('/html/assets/css/vendors/datatables.css') }}">
@@ -495,6 +495,18 @@
         flatpickr("input[type=datetime-local]", config);
         flatpickr("input[type=datetime]", {});
     </script>
+    <script type="text/javascript" src="{{ url('/clock/dist/bootstrap-clockpicker.min.js') }}"></script>
+    <script>
+$(document).ready(function(){
+
+    $('.clockpicker').clockpicker({
+        autoclose: true,
+        placement: 'bottom',
+        align: 'left'
+    });
+
+});
+</script>
     @stack('script')
     @include('sweetalert::alert')
   </body>

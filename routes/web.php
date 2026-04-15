@@ -306,15 +306,21 @@ Route::get('/tunjangan/{id}/edit', [TunjanganController::class, 'edit'])->middle
 Route::put('/tunjangan/{id}/update', [TunjanganController::class, 'update'])->middleware('admin');
 Route::delete('/tunjangan/{id}/delete', [TunjanganController::class, 'delete'])->middleware('admin');
 
+// routes/web.php - pastikan urutan & middleware benar
 Route::get('/payroll', [PayrollController::class, 'index'])->middleware('auth');
 Route::get('/payroll/tambah', [PayrollController::class, 'tambah'])->middleware('admin');
 Route::post('/payroll/tambah-proses', [PayrollController::class, 'tambahProses'])->middleware('admin');
-// ↓ TAMBAHKAN DI SINI (harus sebelum /{id}/)
 Route::get('/payroll/get-user-data/{id}', [PayrollController::class, 'getUserData'])->middleware('admin');
+
+// ✅ generate harus SEBELUM /{id}/ dan pakai middleware auth
+Route::get('/payroll/generate', [PayrollController::class, 'generate'])->middleware('admin');
+Route::post('/payroll/generate', [PayrollController::class, 'generateProses'])->middleware('admin');
+
+// Route dengan {id} di bawah semua
 Route::get('/payroll/{id}/edit', [PayrollController::class, 'edit'])->middleware('admin');
-Route::get('/payroll/{id}/download', [PayrollController::class, 'download'])->middleware('auth');
 Route::put('/payroll/{id}/update', [PayrollController::class, 'update'])->middleware('admin');
 Route::delete('/payroll/{id}/delete', [PayrollController::class, 'delete'])->middleware('admin');
+Route::get('/payroll/{id}/download', [PayrollController::class, 'download'])->middleware('auth');
 
 Route::get('/kasbon', [KasbonController::class, 'index'])->middleware('auth');
 Route::get('/kasbon/tambah', [KasbonController::class, 'tambah'])->middleware('auth');

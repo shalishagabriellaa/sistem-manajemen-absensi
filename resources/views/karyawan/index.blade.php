@@ -107,7 +107,14 @@
                                                 @if($du->foto_karyawan == null)
                                                     <img style="width: 80px; border-radius: 50px" src="{{ url('assets/img/foto_default.jpg') }}" alt="{{ $du->name ?? '-' }}">
                                                 @else
-                                                    <img style="width: 80px; border-radius: 50px" src="{{ url('/storage/'.$du->foto_karyawan) }}" alt="{{ $du->name ?? '-' }}">
+                                                   <img 
+                                        style="width: 80px; border-radius: 50px; cursor:pointer"
+                                        src="{{ asset($du->foto_karyawan) }}" 
+                                        alt="{{ $du->name ?? '-' }}"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#fotoModal"
+                                        onclick="showImage('{{ asset($du->foto_karyawan) }}')"
+                                    >
                                                 @endif
                                             </td>
                                             <td class="text-center">{{ $du->username ?? '-' }}</td>
@@ -191,6 +198,16 @@
             </div>
         </div>
     </div>
+
+<div class="modal fade" id="fotoModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center">
+      <div class="modal-body">
+        <img id="previewFoto" src="" style="width:100%; border-radius:10px;">
+      </div>
+    </div>
+  </div>
+</div>
 
     @push('style')
     <style>
@@ -498,6 +515,10 @@
                 $('.table-responsive').scrollLeft(0);
             });
         });
+        
+        function showImage(src){
+    document.getElementById('previewFoto').src = src;
+}
     </script>
     @endpush
 @endsection

@@ -20,7 +20,14 @@
                         @if($karyawan->foto_karyawan == null)
                             <img class="profile-user-img img-fluid img-circle" src="{{ url('assets/img/foto_default.jpg') }}" alt="User profile picture">
                         @else
-                            <img class="profile-user-img img-fluid img-circle" src="{{ url('storage/'.$karyawan->foto_karyawan) }}" alt="User profile picture">
+                            <img 
+                            style="width: 80px; border-radius: 50px; cursor:pointer"
+                            src="{{ asset($karyawan->foto_karyawan) }}" 
+                            alt="{{ $karyawan->name ?? '-' }}"
+                            data-bs-toggle="modal"
+                            data-bs-target="#fotoModal"
+                            onclick="showImage('{{ asset($karyawan->foto_karyawan) }}')"
+                                >
                         @endif
                     </div>
 
@@ -775,6 +782,16 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="fotoModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center">
+      <div class="modal-body">
+        <img id="previewFoto" src="" style="width:100%; border-radius:10px;">
+      </div>
+    </div>
+  </div>
+</div>
+
     @push('script')
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>
         <script>
@@ -811,6 +828,11 @@
 
                 $('#masa_kerja').val(year + ' Tahun, ' + month + ' Bulan, ' + day + ' Hari.');
             });
+            
+            function showImage(src){
+    document.getElementById('previewFoto').src = src;
+}
+
         </script>
     @endpush
 @endsection
