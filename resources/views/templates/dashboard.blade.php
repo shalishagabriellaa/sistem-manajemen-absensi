@@ -104,7 +104,7 @@
           </div>
           <div class="left-header col horizontal-wrapper ps-0" style="display: flex; gap: 5px;">
             @if(auth()->user()->is_admin == 'admin')
-              <a href="{{ url('/switch/user') }}" class="btn btn-sm btn-warning" onclick="return confirm('Are You Sure ?')">Dashboard User</a>
+              <!--<a href="{{ url('/switch/user') }}" class="btn btn-sm btn-warning" onclick="return confirm('Are You Sure ?')">Dashboard User</a>-->
             @elseif(auth()->user()->is_admin == 'user')
               @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('hrd') || auth()->user()->hasRole('kepala_cabang') || auth()->user()->hasRole('general_manager') || auth()->user()->hasRole('finance') || auth()->user()->hasRole('regional_manager'))
                 <a href="{{ url('/switch/admin') }}" class="btn btn-sm btn-success" onclick="return confirm('Are You Sure ?')">Dashboard Admin</a>
