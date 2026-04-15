@@ -13,8 +13,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title }}</title>
     <!-- Favicon and Touch Icons  -->
-    <link rel="shortcut icon" href="{{ url('/storage/'.$settings->logo) }}" />
-    <link rel="apple-touch-icon-precomposed" href="{{ url('/storage/'.$settings->logo) }}" />
+    <link rel="shortcut icon" href="{{ asset($settings->logo) }}" />
+    <link rel="apple-touch-icon-precomposed" href="{{ asset($settings->logo) }}"  />
     <!-- Font -->
     <link rel="stylesheet" href="{{ url('/myhr/fonts/fonts.css') }}" />
     <!-- Icons -->
@@ -163,7 +163,7 @@
                 <div class="tf-container">
                     <div class="d-flex justify-content-between align-items-center">
                         <a href="{{ url('/') }}" class="sidebar-logo">
-                            <img src="{{ asset('/storage/'.$settings->logo) }}" alt="logo">
+                            <img src="{{ asset($settings->logo) }}"  alt="logo">
                             <h5>Absensi</h5>
                         </a>
                         <a href="javascript:void(0);" class="clear-panel"> <i class="icon-close1"></i> </a>
