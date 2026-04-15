@@ -181,7 +181,7 @@ $user = App\Models\User::find($inbox->data['user_id']);
 @if ($user->foto_karyawan == null)
 <img src="{{ url('assets/img/foto_default.jpg') }}">
 @else
-<img src="{{ url('/storage/'.$user->foto_karyawan) }}">
+<img src="{{ asset($user->foto_karyawan) }}">
 @endif
 
 </div>
