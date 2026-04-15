@@ -8,13 +8,13 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="author" content="pixelstrap">
-    <link rel="shortcut icon" href="{{ url('/storage/'.$settings->logo) }}" />
-    <link rel="apple-touch-icon-precomposed" href="{{ url('/storage/'.$settings->logo) }}" />
+    <link rel="shortcut icon" href="{{ asset($settings->logo) }}" />
+    <link rel="apple-touch-icon-precomposed" href="{{ asset($settings->logo) }}" />
     <title>{{ $title }}</title>
     <link rel="stylesheet" type="text/css" href="{{ url('clock/dist/bootstrap-clockpicker.min.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;F0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="{{ url('/html/assets/css/vendors/font-awesome.css') }}">
@@ -69,19 +69,15 @@
             display: none;
         }
     </style>
-
-
     @stack('style')
   </head>
   <body>
     <div class="tap-top"><i data-feather="chevrons-up"></i></div>
-    {{-- <div class="loader-wrapper">
-      <div class="loader"></div>
-    </div> --}}
     <div class="preload preload-container">
         <div class="preload-logo"></div>
     </div>
     <div class="page-wrapper compact-wrapper" id="pageWrapper">
+
       <div class="page-header">
         <div class="header-wrapper row m-0">
           <form class="form-inline search-full col" action="#" method="get">
@@ -89,17 +85,23 @@
               <div class="Typeahead Typeahead--twitterUsers">
                 <div class="u-posRelative">
                   <input class="demo-input Typeahead-input form-control-plaintext w-100" type="text" placeholder="Search In Enzo .." name="q" title="" autofocus>
-                  <div class="spinner-border Typeahead-spinner" role="status"><span class="sr-only">Loading...</span></div><i class="close-search" data-feather="x"></i>
+                  <div class="spinner-border Typeahead-spinner" role="status"><span class="sr-only">Loading...</span></div>
+                  <i class="close-search" data-feather="x"></i>
                 </div>
                 <div class="Typeahead-menu"></div>
               </div>
             </div>
           </form>
           <div class="header-logo-wrapper col-auto p-0">
-            <div class="logo-wrapper"><a href="{{ url('/dashboard') }}"><img class="img-fluid" src="{{ url('/html/assets/images/logo/login.png') }}" alt=""></a></div>
-            <div class="toggle-sidebar"><i class="status_toggle middle sidebar-toggle" data-feather="align-center"></i></div>
+            <div class="logo-wrapper">
+              <a href="{{ url('/dashboard') }}">
+                <img class="img-fluid" src="{{ url('/html/assets/images/logo/login.png') }}" alt="">
+              </a>
+            </div>
+            <div class="toggle-sidebar">
+              <i class="status_toggle middle sidebar-toggle" data-feather="align-center"></i>
+            </div>
           </div>
-
           <div class="left-header col horizontal-wrapper ps-0" style="display: flex; gap: 5px;">
             @if(auth()->user()->is_admin == 'admin')
               <a href="{{ url('/switch/user') }}" class="btn btn-sm btn-warning" onclick="return confirm('Are You Sure ?')">Dashboard User</a>
@@ -110,11 +112,11 @@
             @endif
             <a href="{{ url('/petunjuk.pdf') }}" target="_blank" class="btn btn-sm btn-primary">Petunjuk Penggunaan</a>
           </div>
-
           <div class="nav-right col-8 pull-right right-header p-0">
             <ul class="nav-menus">
               <li>
-                <a class="notification-box" href="{{ url('/notifications') }}"><i class="fa fa-bell"></i>
+                <a class="notification-box" href="{{ url('/notifications') }}">
+                  <i class="fa fa-bell"></i>
                   @if (auth()->user()->notifications()->whereNull('read_at')->count() > 0)
                     <span class="badge rounded-pill badge-danger">{{ auth()->user()->notifications()->whereNull('read_at')->count() }}</span>
                   @endif
@@ -123,247 +125,248 @@
               <li class="profile-nav onhover-dropdown p-0 me-0">
                 <div class="d-flex profile-media">
                   @if (auth()->user()->foto_karyawan)
-                    <img class="b-r-50" src="{{ url('/storage/'.auth()->user()->foto_karyawan) }}" alt="" style="width: 50px">
+                    <img class="b-r-50" src="{{ asset(auth()->user()->foto_karyawan) }}" alt="" style="width: 50px">
                   @else
                     <img class="b-r-50" src="{{ url('/html/assets/images/dashboard/profile.jpg') }}" alt="">
                   @endif
-                  <div class="flex-grow-1"><span>{{ auth()->user()->name }}</span>
+                  <div class="flex-grow-1">
+                    <span>{{ auth()->user()->name }}</span>
                     <p class="mb-0 font-roboto">{{ auth()->user()->Jabatan->nama_jabatan }} <i class="middle fa fa-angle-down"></i></p>
                   </div>
                 </div>
                 <ul class="profile-dropdown onhover-show-div">
-                  <li><a href="{{ url('/my-profile') }}"><i data-feather="user"></i><span>Account </span></a></li>
+                  <li><a href="{{ url('/my-profile') }}"><i data-feather="user"></i><span>Account</span></a></li>
                   <li><a href="{{ url('/my-profile/edit-password') }}"><i data-feather="file-text"></i><span>Change Password</span></a></li>
-                  <li><a href="{{ url('/logout') }}" onclick="return confirm('Are you sure?')"><i data-feather="log-out"> </i><span>Log Out</span></a></li>
+                  <li><a href="{{ url('/logout') }}" onclick="return confirm('Are you sure?')"><i data-feather="log-out"></i><span>Log Out</span></a></li>
                 </ul>
               </li>
             </ul>
           </div>
           <script class="result-template" type="text/x-handlebars-template">
             <div class="ProfileCard u-cf">
-            <div class="ProfileCard-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-airplay m-0"><path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1"></path><polygon points="12 15 17 21 7 21 12 15"></polygon></svg></div>
-            <div class="ProfileCard-details">
-            <div class="ProfileCard-realName"></div>
-            </div>
+              <div class="ProfileCard-avatar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-airplay m-0">
+                  <path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1"></path>
+                  <polygon points="12 15 17 21 7 21 12 15"></polygon>
+                </svg>
+              </div>
+              <div class="ProfileCard-details">
+                <div class="ProfileCard-realName"></div>
+              </div>
             </div>
           </script>
-          <script class="empty-template" type="text/x-handlebars-template"><div class="EmptyMessage">Your search turned up 0 results. This most likely means the backend is down, yikes!</div></script>
+          <script class="empty-template" type="text/x-handlebars-template">
+            <div class="EmptyMessage">Your search turned up 0 results. This most likely means the backend is down, yikes!</div>
+          </script>
         </div>
-      </div>
+      </div>{{-- END page-header --}}
+
       <div class="page-body-wrapper">
+
         <div class="sidebar-wrapper">
-          <div>
-            <div class="logo-wrapper"><a href="{{ url('/dashboard') }}"><img class="img-fluid for-light me-2" src="{{ asset('/storage/'.$settings->logo) }}" style="width: 50px" alt=""></a><div style="font-size: 20px; color:white; display:inline">{{ $settings->name }}</div>
-              <div class="back-btn"><i class="fa fa-angle-left"></i></div>
-              <div class="toggle-sidebar"><i class="fa fa-cog status_toggle middle sidebar-toggle"> </i></div>
-            </div>
-            <div class="logo-icon-wrapper"><a href="{{ url('/dashboard') }}"><img class="img-fluid" src="{{ url('/html/assets/images/logo/logo-icon1.png') }}" alt=""></a></div>
-            <nav class="sidebar-main">
-              <div class="left-arrow" id="left-arrow"><i data-feather="arrow-left"></i></div>
-              <div id="sidebar-menu">
-                <ul class="sidebar-links" id="simple-bar">
-                  <li class="back-btn"><a href="{{ url('/dashboard') }}"><img class="img-fluid" src="{{ url('/html/assets/images/logo/logo-icon.png') }}" alt=""></a>
-                    <div class="mobile-back text-end"><span>Back</span><i class="fa fa-angle-right ps-2" aria-hidden="true"></i></div>
-                  </li>
-                  <li class="sidebar-main-title">
-                    <h6>Menu </h6>
-                  </li>
-                  <li class="menu-box">
-                    <ul>
-
-                      <li class="sidebar-list">
-                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/dashboard') }}"><i data-feather="home"> </i><span>Dashboard</span></a>
-                      </li>
-
-                      <!-- <li class="sidebar-list">
-                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/notifications') }}"><i data-feather="bell"></i>
-                          <span>Notifications</span>
-                          @if (auth()->user()->notifications()->whereNull('read_at')->count() > 0)
-                            <span class="badge rounded-pill badge-danger">{{ auth()->user()->notifications()->whereNull('read_at')->count() }}</span>
-                          @endif
-                        </a>
-                      </li> -->
-
-                      <li class="sidebar-list">
-                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/my-profile') }}"><i data-feather="user-check"> </i><span>My Profile</span></a>
-                      </li>
-
-                      @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('hrd') || auth()->user()->hasRole('general_manager'))
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title link-nav" href="{{ url('/pegawai') }}"><i data-feather="users"> </i><span>Pegawai</span></a>
-                        </li>
-                      @endif
-
-                      @if (auth()->user()->hasRole('admin'))
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title link-nav" href="{{ url('/role') }}"><i data-feather="airplay"> </i><span>Role</span></a>
-                        </li>
-                      @endif
-
-                      @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('hrd') || auth()->user()->hasRole('general_manager'))
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title link-nav" href="{{ url('/kontrak') }}"><i data-feather="trending-up"> </i><span>Kontrak</span></a>
-                        </li>
-
-                        <li class="sidebar-list">
-                          <a class="sidebar-link sidebar-title link-nav" href="{{ url('/exit') }}"><i data-feather="user-minus"> </i><span>Pegawai Keluar</span></a>
-                        </li>
-
-                        <li class="sidebar-list">
-                          <a class="sidebar-link sidebar-title link-nav" href="{{ url('/shift') }}"><i data-feather="git-pull-request"> </i><span>Shift</span></a>
-                        </li>
-
-
-
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title link-nav" href="{{ url('/jabatan') }}"><i data-feather="package"> </i><span>Divisi</span></a>
-                        </li>
-                      @endif
-
-                      @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('kepala_cabang') || auth()->user()->hasRole('hrd') || auth()->user()->hasRole('general_manager'))
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title link-nav" href="{{ url('/lokasi-kantor') }}"><i data-feather="map-pin"> </i><span>Lokasi</span></a>
-                        </li>
-                      @endif
-
-                      @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('general_manager') || auth()->user()->hasRole('finance'))
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title link-nav" href="{{ url('/rekap-data') }}"><i data-feather="credit-card"> </i><span>Rekap Data</span></a>
-                        </li>
-                      @endif
-
-                      @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('general_manager') || auth()->user()->hasRole('hrd'))
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title link-nav" href="{{ url('/data-cuti') }}"><i data-feather="shuffle"> </i><span>Cuti</span></a>
-                        </li>
-                      @endif
-
-                      <li class="sidebar-list"><a class="sidebar-link sidebar-title" href="javascript:void(0)"><i data-feather="clock"></i><span>Absensi</span></a>
-                          <ul class="sidebar-submenu">
-                          <li><a href="{{ url('/absen') }}">Absen</a></li>
-                          @if (auth()->user()->hasRole('admin'))
-                          <li><a href="{{ url('/data-absen') }}">Data Absen</a></li>
-                          @endif
-                          <li><a href="{{ url('/dinas-luar') }}">Absen Dinas Luar</a></li>
-                          @if (auth()->user()->hasRole('admin'))
-                          <li><a href="{{ url('/data-dinas-luar') }}">Data Dinas Luar</a></li>
-                          @endif
-                          </ul>
-                      </li>
-
-                      <li class="sidebar-list"><a class="sidebar-link sidebar-title" href="javascript:void(0)"><i data-feather="film"></i><span>Overtime</span></a>
-                          <ul class="sidebar-submenu">
-                          <li><a href="{{ url('/lembur') }}">Lembur</a></li>
-                          @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('hrd') || auth()->user()->hasRole('kepala_cabang') || auth()->user()->hasRole('general_manager'))
-                          <li><a href="{{ url('/data-lembur') }}">Data Lembur</a></li>
-                          @endif
-                          </ul>
-                      </li>
-
-                      @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('hrd') || auth()->user()->hasRole('general_manager'))
-
-                        <li class="sidebar-list"><a class="sidebar-link sidebar-title" href="javascript:void(0)"><i data-feather="map"></i><span>Patroli</span></a>
-                            <ul class="sidebar-submenu">
-                            <li><a href="{{ url('/patroli') }}">Patroli</a></li>
-                            <li><a href="{{ url('/data-patroli') }}">Data Patroli</a></li>
-                            </ul>
-                        </li>
-
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title link-nav" href="{{ url('/kunjungan') }}"><i data-feather="navigation"> </i><span>Kunjungan</span></a>
-                        </li>
-
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title link-nav" href="{{ url('/penugasan') }}"><i data-feather="award"> </i><span>Penugasan</span></a>
-                        </li>
-
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title link-nav" href="{{ url('/rapat') }}"><i data-feather="monitor"> </i><span>Rapat</span></a>
-                        </li>
-
-                        <li class="sidebar-list"><a class="sidebar-link sidebar-title" href="javascript:void(0)"><i data-feather="wind"></i><span>Kinerja Pegawai</span></a>
-                            <ul class="sidebar-submenu">
-                              <li><a href="{{ url('/jenis-kinerja') }}">Jenis Kinerja</a></li>
-                              <li><a href="{{ url('/laporan-kinerja') }}">Laporan Kinerja</a></li>
-                              <li><a href="{{ url('/kinerja-pegawai') }}">Kinerja Pegawai</a></li>
-                            </ul>
-                        </li>
-
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title link-nav {{ Request::is('laporan-kerja*') ? 'active' : '' }}" href="{{ url('/laporan-kerja') }}"><i data-feather="message-square"> </i><span>Laporan Kerja</span></a>
-                        </li>
-                      @endif
-
-                      <li class="sidebar-list">
-                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/inventory') }}"><i data-feather="git-merge"> </i><span>Inventory</span></a>
-                      </li>
-
-                      @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('general_manager') || auth()->user()->hasRole('finance') || auth()->user()->hasRole('regional_manager'))
-                        <li class="sidebar-list"><a class="sidebar-link sidebar-title" href="javascript:void(0)"><i data-feather="dollar-sign"></i><span>Keuangan</span></a>
-                            <ul class="sidebar-submenu">
-                            <li><a href="{{ url('/payroll') }}">Payroll</a></li>
-                            <li><a href="{{ url('/pajak') }}">Pajak</a></li>
-                            <li><a href="{{ url('/kasbon') }}">Kasbon</a></li>
-                            <li><a href="{{ url('/project') }}">Project</a></li>
-                            <li><a href="{{ url('/reimbursement') }}">Reimbursement</a></li>
-                            <li><a href="{{ url('/budgeting') }}">Budgeting</a></li>
-                            <li><a href="{{ url('/kategori') }}">Kategori Reimbursement</a></li>
-                            <li><a href="{{ url('/list-pengajuan-keuangan') }}">Pengajuan Keuangan</a></li>
-                            <li><a href="{{ url('/status-pajak') }}">Status Pajak</a></li>
-                            </ul>
-                        </li>
-
-                        <li class="sidebar-list"><a class="sidebar-link sidebar-title" href="javascript:void(0)"><i data-feather="sunrise"></i><span>Target</span></a>
-                          <ul class="sidebar-submenu">
-                            <li><a href="{{ url('/target-kinerja') }}">Target Kinerja</a></li>
-                            <li><a href="{{ url('/detail-target-kinerja') }}">Detail Target</a></li>
-                          </ul>
-                        </li>
-                      @endif
-
-
-                      @if (auth()->user()->hasRole('admin'))
-                      <li class="sidebar-list">
-                        <a class="sidebar-link sidebar-title link-nav {{ Request::is('dokumen*') ? 'active' : '' }}" href="{{ url('/dokumen') }}"><i data-feather="folder"> </i><span>Dokumen Pegawai</span></a>
-                      </li>
-                      @endif
-
-                      @if (auth()->user()->hasRole('admin'))
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title link-nav {{ Request::is('berita*') ? 'active' : '' }}" href="{{ url('/berita') }}"><i data-feather="star"> </i><span>Berita & Informasi</span></a>
-                        </li>
-
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title link-nav {{ Request::is('settings*') ? 'active' : '' }}" href="{{ url('/settings') }}"><i data-feather="settings"> </i><span>Settings</span></a>
-                        </li>
-                      @endif
-
-                    </ul>
-                  </li>
-
-                </ul>
-              </div>
-              <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>
-            </nav>
+          <div class="logo-wrapper">
+            <a href="{{ url('/dashboard') }}">
+              <img class="img-fluid" src="{{ asset($settings->logo) }}" alt="logo" style="height:50px; width:auto; max-width:180px;">
+            </a>
+            <div class="back-btn"><i class="fa fa-angle-left"></i></div>
+            <div class="toggle-sidebar"><i class="fa fa-cog status_toggle middle sidebar-toggle"></i></div>
           </div>
-        </div>
+          <div class="logo-icon-wrapper">
+            <a href="{{ url('/dashboard') }}">
+              <img class="img-fluid" src="{{ url('/html/assets/images/logo/logo-icon1.png') }}" alt="">
+            </a>
+          </div>
+          <nav class="sidebar-main">
+            <div class="left-arrow" id="left-arrow"><i data-feather="arrow-left"></i></div>
+            <div id="sidebar-menu">
+              <ul class="sidebar-links" id="simple-bar">
+                <li class="back-btn">
+                  <a href="{{ url('/dashboard') }}">
+                    <img class="img-fluid" src="{{ url('/html/assets/images/logo/logo-icon.png') }}" alt="">
+                  </a>
+                  <div class="mobile-back text-end"><span>Back</span><i class="fa fa-angle-right ps-2" aria-hidden="true"></i></div>
+                </li>
+                <li class="sidebar-main-title">
+                  <h6>Menu</h6>
+                </li>
+                <li class="menu-box">
+                  <ul>
+
+                    <li class="sidebar-list">
+                      <a class="sidebar-link sidebar-title link-nav" href="{{ url('/dashboard') }}"><i data-feather="home"></i><span>Dashboard</span></a>
+                    </li>
+
+                    <li class="sidebar-list">
+                      <a class="sidebar-link sidebar-title link-nav" href="{{ url('/my-profile') }}"><i data-feather="user-check"></i><span>My Profile</span></a>
+                    </li>
+
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('hrd') || auth()->user()->hasRole('general_manager'))
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/pegawai') }}"><i data-feather="users"></i><span>Pegawai</span></a>
+                      </li>
+                    @endif
+
+                    @if (auth()->user()->hasRole('admin'))
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/role') }}"><i data-feather="airplay"></i><span>Role</span></a>
+                      </li>
+                    @endif
+
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('hrd') || auth()->user()->hasRole('general_manager'))
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/kontrak') }}"><i data-feather="trending-up"></i><span>Kontrak</span></a>
+                      </li>
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/exit') }}"><i data-feather="user-minus"></i><span>Pegawai Keluar</span></a>
+                      </li>
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/shift') }}"><i data-feather="git-pull-request"></i><span>Shift</span></a>
+                      </li>
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/jabatan') }}"><i data-feather="package"></i><span>Divisi</span></a>
+                      </li>
+                    @endif
+
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('kepala_cabang') || auth()->user()->hasRole('hrd') || auth()->user()->hasRole('general_manager'))
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/lokasi-kantor') }}"><i data-feather="map-pin"></i><span>Lokasi</span></a>
+                      </li>
+                    @endif
+
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('general_manager') || auth()->user()->hasRole('finance'))
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/rekap-data') }}"><i data-feather="credit-card"></i><span>Rekap Data</span></a>
+                      </li>
+                    @endif
+
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('general_manager') || auth()->user()->hasRole('hrd'))
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/data-cuti') }}"><i data-feather="shuffle"></i><span>Cuti</span></a>
+                      </li>
+                    @endif
+
+                    <li class="sidebar-list">
+                      <a class="sidebar-link sidebar-title" href="javascript:void(0)"><i data-feather="clock"></i><span>Absensi</span></a>
+                      <ul class="sidebar-submenu">
+                        <li><a href="{{ url('/absen') }}">Absen</a></li>
+                        @if (auth()->user()->hasRole('admin'))
+                          <li><a href="{{ url('/data-absen') }}">Data Absen</a></li>
+                        @endif
+                        <li><a href="{{ url('/dinas-luar') }}">Absen Dinas Luar</a></li>
+                        @if (auth()->user()->hasRole('admin'))
+                          <li><a href="{{ url('/data-dinas-luar') }}">Data Dinas Luar</a></li>
+                        @endif
+                      </ul>
+                    </li>
+
+                    <li class="sidebar-list">
+                      <a class="sidebar-link sidebar-title" href="javascript:void(0)"><i data-feather="film"></i><span>Overtime</span></a>
+                      <ul class="sidebar-submenu">
+                        <li><a href="{{ url('/lembur') }}">Lembur</a></li>
+                        @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('hrd') || auth()->user()->hasRole('kepala_cabang') || auth()->user()->hasRole('general_manager'))
+                          <li><a href="{{ url('/data-lembur') }}">Data Lembur</a></li>
+                        @endif
+                      </ul>
+                    </li>
+
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('hrd') || auth()->user()->hasRole('general_manager'))
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title" href="javascript:void(0)"><i data-feather="map"></i><span>Patroli</span></a>
+                        <ul class="sidebar-submenu">
+                          <li><a href="{{ url('/patroli') }}">Patroli</a></li>
+                          <li><a href="{{ url('/data-patroli') }}">Data Patroli</a></li>
+                        </ul>
+                      </li>
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/kunjungan') }}"><i data-feather="navigation"></i><span>Kunjungan</span></a>
+                      </li>
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/penugasan') }}"><i data-feather="award"></i><span>Penugasan</span></a>
+                      </li>
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/rapat') }}"><i data-feather="monitor"></i><span>Rapat</span></a>
+                      </li>
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title" href="javascript:void(0)"><i data-feather="wind"></i><span>Kinerja Pegawai</span></a>
+                        <ul class="sidebar-submenu">
+                          <li><a href="{{ url('/jenis-kinerja') }}">Jenis Kinerja</a></li>
+                          <li><a href="{{ url('/laporan-kinerja') }}">Laporan Kinerja</a></li>
+                          <li><a href="{{ url('/kinerja-pegawai') }}">Kinerja Pegawai</a></li>
+                        </ul>
+                      </li>
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav {{ Request::is('laporan-kerja*') ? 'active' : '' }}" href="{{ url('/laporan-kerja') }}"><i data-feather="message-square"></i><span>Laporan Kerja</span></a>
+                      </li>
+                    @endif
+
+                    <li class="sidebar-list">
+                      <a class="sidebar-link sidebar-title link-nav" href="{{ url('/inventory') }}"><i data-feather="git-merge"></i><span>Inventory</span></a>
+                    </li>
+
+                    @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('general_manager') || auth()->user()->hasRole('finance') || auth()->user()->hasRole('regional_manager'))
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title" href="javascript:void(0)"><i data-feather="dollar-sign"></i><span>Keuangan</span></a>
+                        <ul class="sidebar-submenu">
+                          <li><a href="{{ url('/payroll') }}">Payroll</a></li>
+                          <li><a href="{{ url('/pajak') }}">Pajak</a></li>
+                          <li><a href="{{ url('/kasbon') }}">Kasbon</a></li>
+                          <li><a href="{{ url('/project') }}">Project</a></li>
+                          <li><a href="{{ url('/reimbursement') }}">Reimbursement</a></li>
+                          <li><a href="{{ url('/budgeting') }}">Budgeting</a></li>
+                          <li><a href="{{ url('/kategori') }}">Kategori Reimbursement</a></li>
+                          <li><a href="{{ url('/list-pengajuan-keuangan') }}">Pengajuan Keuangan</a></li>
+                          <li><a href="{{ url('/status-pajak') }}">Status Pajak</a></li>
+                        </ul>
+                      </li>
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title" href="javascript:void(0)"><i data-feather="sunrise"></i><span>Target</span></a>
+                        <ul class="sidebar-submenu">
+                          <li><a href="{{ url('/target-kinerja') }}">Target Kinerja</a></li>
+                          <li><a href="{{ url('/detail-target-kinerja') }}">Detail Target</a></li>
+                        </ul>
+                      </li>
+                    @endif
+
+                    @if (auth()->user()->hasRole('admin'))
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav {{ Request::is('dokumen*') ? 'active' : '' }}" href="{{ url('/dokumen') }}"><i data-feather="folder"></i><span>Dokumen Pegawai</span></a>
+                      </li>
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav {{ Request::is('berita*') ? 'active' : '' }}" href="{{ url('/berita') }}"><i data-feather="star"></i><span>Berita & Informasi</span></a>
+                      </li>
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav {{ Request::is('settings*') ? 'active' : '' }}" href="{{ url('/settings') }}"><i data-feather="settings"></i><span>Settings</span></a>
+                      </li>
+                    @endif
+
+                  </ul>
+                </li>
+              </ul>
+            </div>
+            <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>
+          </nav>
+        </div>{{-- END sidebar-wrapper --}}
+
         <div class="page-body">
           <div class="container-fluid default-dash">
             @yield('isi')
           </div>
         </div>
+
         <footer class="footer">
           <div class="container-fluid">
             <div class="row">
               <div class="col-md-6 p-0 footer-left">
                 <p class="mb-0">Copyright © {{ date('Y') }} Code Null. All rights reserved.</p>
               </div>
-
             </div>
           </div>
         </footer>
-      </div>
-    </div>
+
+      </div>{{-- END page-body-wrapper --}}
+
+    </div>{{-- END page-wrapper --}}
+
     <script src="{{ url('/html/assets/js/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ url('/html/assets/js/bootstrap/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url('/html/assets/js/icons/feather-icon/feather.min.js') }}"></script>
@@ -404,13 +407,11 @@
     <script src="{{ url('/push/bin/push.js') }}"></script>
     <script src="{{ url('/js/app.js') }}"></script>
     <script>
-        // Generate unique app identifier for this dashboard instance
         const APP_IDENTIFIER = '{{ config("app.name", "absensi") }}_{{ Request::getHost() }}_{{ md5(config("app.url") . config("app.key")) }}_dashboard';
-        
+
         window.Echo.channel("messages").listen("NotifApproval", (event) => {
             var user_id = {{ auth()->user()->id }};
-            
-            // Check if notification is for current user and current app instance
+
             if (event.user_id == user_id && event.app_identifier === APP_IDENTIFIER) {
                 if (event.type == "Approved") {
                     Swal.fire({
@@ -437,8 +438,7 @@
                 Push.create(event.notif);
             }
         });
-        
-        // Store app identifier for this session
+
         sessionStorage.setItem('app_identifier', APP_IDENTIFIER);
     </script>
     <script>
@@ -462,39 +462,38 @@
     <script>
         const preloader = function () {
             setTimeout(function () {
-            $(".preload").fadeOut("slow", function () {
-                $(this).remove();
-            });
+                $(".preload").fadeOut("slow", function () {
+                    $(this).remove();
+                });
             }, 150);
         };
-      $(function(){
-          $('form').on('submit', function(){
-              $(':input[type="submit"]').prop('disabled', true);
-          });
-          preloader();
-      })
-      $(function () {
-        $('.selectpicker').select2();
-        $('#mytable').DataTable( {
-            "responsive": true,
-            "paging": false,
-            "info": false,
-            "scrollCollapse": true,
-            "autoWidth": false,
-            'searching': false
+        $(function(){
+            $('form').on('submit', function(){
+                $(':input[type="submit"]').prop('disabled', true);
+            });
+            preloader();
         });
-      });
+        $(function () {
+            $('.selectpicker').select2();
+            $('#mytable').DataTable({
+                "responsive": true,
+                "paging": false,
+                "info": false,
+                "scrollCollapse": true,
+                "autoWidth": false,
+                'searching': false
+            });
+        });
     </script>
     <script>
-      config = {
-          enableTime: true,
-          noCalendar: true,
-          dateFormat: "H:i",
-          time_24hr: true,
-      }
-
-      flatpickr("input[type=datetime-local]", config)
-      flatpickr("input[type=datetime]", {})
+        const config = {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            time_24hr: true,
+        }
+        flatpickr("input[type=datetime-local]", config);
+        flatpickr("input[type=datetime]", {});
     </script>
     @stack('script')
     @include('sweetalert::alert')

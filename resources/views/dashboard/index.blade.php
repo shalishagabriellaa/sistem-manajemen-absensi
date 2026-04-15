@@ -14,6 +14,12 @@
               </div>
               <h1 class="dashboard-title mb-2">Dashboard Overview</h1>
               <p class="dashboard-subtitle">Pantau aktivitas dan performa tim Anda secara real-time</p>
+              <div class="mt-2">
+              <span class="live-badge">
+                <span class="live-dot"></span>
+                Live · Diperbarui: <span id="last-updated">--:--:--</span>
+              </span>
+            </div>
             </div>
           </div>
           <div class="col-lg-4 text-lg-end">
@@ -53,10 +59,10 @@
               </div>
               <div class="stat-info">
                 <div class="stat-label">Total Pegawai</div>
-                <div class="stat-value">{{ $jumlah_user }}</div>
-                <div class="stat-trend">
+               <div class="stat-value" id="val-total-pegawai">{{ $jumlah_user }}</div>
+                <div class="stat-trend" id="trend-pegawai">
                   <i data-feather="trending-up"></i>
-                  <span>+5% bulan ini</span>
+                  <span id="trend-pegawai-text">+0% bulan ini</span>
                 </div>
               </div>
             </div>
@@ -72,10 +78,10 @@
               </div>
               <div class="stat-info">
                 <div class="stat-label">Hadir Hari Ini</div>
-                <div class="stat-value">{{ $jumlah_masuk + $jumlah_izin_telat + $jumlah_izin_pulang_cepat }}</div>
-                <div class="stat-trend positive">
+                <<div class="stat-value" id="val-hadir">{{ $jumlah_masuk + $jumlah_izin_telat + $jumlah_izin_pulang_cepat }}</div>
+                <div class="stat-trend positive" id="trend-hadir">
                   <i data-feather="arrow-up"></i>
-                  <span>{{ round((($jumlah_masuk + $jumlah_izin_telat + $jumlah_izin_pulang_cepat) / $jumlah_user) * 100) }}%</span>
+                  <span id="hadir-persen">{{ round((($jumlah_masuk + $jumlah_izin_telat + $jumlah_izin_pulang_cepat) / max(1,$jumlah_user)) * 100) }}%</span>
                 </div>
               </div>
             </div>
@@ -91,10 +97,10 @@
               </div>
               <div class="stat-info">
                 <div class="stat-label">Tidak Hadir</div>
-                <div class="stat-value">{{ ($jumlah_user - ($jumlah_masuk + $jumlah_izin_telat + $jumlah_izin_pulang_cepat + $jumlah_libur + $jumlah_cuti + $jumlah_izin_masuk + $jumlah_sakit)) }}</div>
-                <div class="stat-trend negative">
+                <div class="stat-value" id="val-tidak-hadir">{{ $jumlah_user - ($jumlah_masuk + $jumlah_izin_telat + $jumlah_izin_pulang_cepat + $jumlah_libur + $jumlah_cuti + $jumlah_izin_masuk + $jumlah_sakit) }}</div>
+                <div class="stat-trend negative" id="trend-tidak-hadir">
                   <i data-feather="arrow-down"></i>
-                  <span>-2% vs kemarin</span>
+                  <span id="trend-tidak-hadir-text">-0% vs kemarin</span>
                 </div>
               </div>
             </div>
@@ -110,7 +116,7 @@
               </div>
               <div class="stat-info">
                 <div class="stat-label">Libur</div>
-                <div class="stat-value">{{ $jumlah_libur }}</div>
+                <div class="stat-value" id="val-libur">{{ $jumlah_libur }}</div>
                 <div class="stat-trend">
                   <i data-feather="calendar"></i>
                   <span>Hari ini</span>
@@ -135,7 +141,7 @@
             <div class="metric-icon">
               <i data-feather="clock"></i>
             </div>
-            <div class="metric-value">{{ $jumlah_karyawan_lembur }}</div>
+            <div class="metric-value" id="val-lembur">{{ $jumlah_karyawan_lembur }}</div>
             <div class="metric-label">Lembur</div>
           </div>
         </div>
@@ -145,7 +151,7 @@
             <div class="metric-icon">
               <i data-feather="heart"></i>
             </div>
-            <div class="metric-value">{{ $jumlah_cuti }}</div>
+            <div class="metric-value" id="val-cuti">{{ $jumlah_cuti }}</div>
             <div class="metric-label">Cuti</div>
           </div>
         </div>
@@ -155,7 +161,7 @@
             <div class="metric-icon">
               <i data-feather="thermometer"></i>
             </div>
-            <div class="metric-value">{{ $jumlah_sakit }}</div>
+            <div class="metric-value" id="val-sakit">{{ $jumlah_sakit }}</div>
             <div class="metric-label">Sakit</div>
           </div>
         </div>
@@ -165,7 +171,7 @@
             <div class="metric-icon">
               <i data-feather="umbrella"></i>
             </div>
-            <div class="metric-value">{{ $jumlah_cuti }}</div>
+            <div class="metric-value" id="val-izin">{{ $jumlah_izin_masuk }}</div>  {{-- fix bug: was $jumlah_cuti --}}
             <div class="metric-label">Izin</div>
           </div>
         </div>
@@ -175,7 +181,7 @@
             <div class="metric-icon">
               <i data-feather="clock"></i>
             </div>
-            <div class="metric-value">{{ $jumlah_izin_telat }}</div>
+            <div class="metric-value" id="val-izin-telat">{{ $jumlah_izin_telat }}</div>
             <div class="metric-label">Terlambat</div>
           </div>
         </div>
@@ -185,7 +191,7 @@
             <div class="metric-icon">
               <i data-feather="log-out"></i>
             </div>
-            <div class="metric-value">{{ $jumlah_izin_pulang_cepat }}</div>
+            <div class="metric-value" id="val-izin-pulang-cepat">{{ $jumlah_izin_pulang_cepat }}</div>
             <div class="metric-label">Pulang Cepat</div>
           </div>
         </div>
@@ -226,8 +232,8 @@
                 </div>
               </div>
               <div class="financial-info">
-                <div class="financial-label">Total Payroll</div>
-                <div class="financial-value">Rp {{ number_format($payroll) }}</div>
+                <div class="financial-label" >Total Payroll</div>
+                <div class="financial-value" id="val-payroll" >Rp {{ number_format($payroll) }}</div>
                 <div class="financial-description">Gaji keseluruhan bulan ini</div>
               </div>
             </div>
@@ -254,7 +260,7 @@
               </div>
               <div class="financial-info">
                 <div class="financial-label">Total Kasbon</div>
-                <div class="financial-value">Rp {{ number_format($kasbon) }}</div>
+                <div class="financial-value" id="val-kasbon">Rp {{ number_format($kasbon) }}</div>
                 <div class="financial-description">Pinjaman karyawan aktif</div>
               </div>
             </div>
@@ -281,7 +287,7 @@
               </div>
               <div class="financial-info">
                 <div class="financial-label">Reimbursement</div>
-                <div class="financial-value">Rp {{ number_format($reimbursement) }}</div>
+                <div class="financial-value" id="val-reimbursement">Rp {{ number_format($reimbursement) }}</div>
                 <div class="financial-description">Penggantian biaya operasional</div>
               </div>
             </div>
@@ -975,330 +981,260 @@
 @push('script')
 <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core/locales/id.js"></script>
+
 <script>
-  // Initialize AOS (Animate On Scroll)
-  AOS.init({
-    duration: 800,
-    easing: 'ease-out-cubic',
-    once: true,
-    offset: 100
+AOS.init({ duration: 800, easing: 'ease-out-cubic', once: true, offset: 100 });
+
+// ─────────────────────────────────────────────
+// CHART — inisialisasi sekali, update via ref
+// ─────────────────────────────────────────────
+let attendanceChart = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  @if(isset($chart_data))
+  const ctx = document.getElementById('attendanceChart');
+  if (ctx) {
+    attendanceChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: {!! json_encode($chart_data['labels']) !!},
+        datasets: [
+          { label: 'Hadir',        data: {!! json_encode($chart_data['hadir']) !!},       borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', borderWidth: 2, fill: false, tension: 0.4, pointRadius: 3, pointHoverRadius: 5 },
+          { label: 'Tidak Hadir',  data: {!! json_encode($chart_data['tidak_hadir']) !!},  borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.08)',   borderWidth: 2, fill: false, tension: 0.4, pointRadius: 3, pointHoverRadius: 5 },
+          { label: 'Libur',        data: {!! json_encode($chart_data['libur']) !!},        borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.08)',    borderWidth: 2, fill: false, tension: 0.4, pointRadius: 3, pointHoverRadius: 5 },
+          { label: 'Cuti',         data: {!! json_encode($chart_data['cuti']) !!},         borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.08)',   borderWidth: 2, fill: false, tension: 0.4, pointRadius: 3, pointHoverRadius: 5 },
+          { label: 'Sakit',        data: {!! json_encode($chart_data['sakit']) !!},        borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)',   borderWidth: 2, fill: false, tension: 0.4, pointRadius: 3, pointHoverRadius: 5 },
+          { label: 'Izin',         data: {!! json_encode($chart_data['izin']) !!},         borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.08)',   borderWidth: 2, fill: false, tension: 0.4, pointRadius: 3, pointHoverRadius: 5 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, position: 'top', labels: { usePointStyle: true, padding: 15, font: { size: 12, weight: '500' } } },
+          tooltip: { mode: 'index', intersect: false, backgroundColor: 'rgba(255,255,255,0.95)', titleColor: '#1f2937', bodyColor: '#374151', borderColor: '#e5e7eb', borderWidth: 1, padding: 12, boxPadding: 6 }
+        },
+        scales: {
+          x: { grid: { color: 'rgba(229,231,235,0.5)', drawBorder: false }, ticks: { font: { size: 11 }, color: '#6b7280' } },
+          y: { beginAtZero: true, grid: { color: 'rgba(229,231,235,0.5)', drawBorder: false }, ticks: { font: { size: 11 }, color: '#6b7280', stepSize: 1 } }
+        },
+        interaction: { mode: 'nearest', axis: 'x', intersect: false }
+      }
+    });
+  }
+  @endif
+
+  // ── Calendar ────────────────────────────────
+  var date = new Date();
+  var y = date.getFullYear();
+
+  var containerEl = document.getElementById("external-events-list");
+  if (containerEl) {
+    new FullCalendar.Draggable(containerEl, {
+      itemSelector: ".fc-event",
+      eventData: function (eventEl) { return { title: eventEl.innerText.trim() }; }
+    });
+  }
+
+  var calendarEl = document.getElementById("calendar");
+  var calendar = new FullCalendar.Calendar(calendarEl, {
+    headerToolbar: {
+      left: "prev,next today", center: "title",
+      right: window.innerWidth > 768 ? "dayGridMonth,timeGridWeek,timeGridDay,listWeek" : "dayGridMonth,listWeek"
+    },
+    initialView: "dayGridMonth", navLinks: true, editable: true, selectable: true,
+    nowIndicator: true, height: 'auto',
+    aspectRatio: window.innerWidth > 768 ? 1.8 : 1.2,
+    locale: 'id',
+    buttonText: { today: 'Hari Ini', month: 'Bulan', week: 'Minggu', day: 'Hari', list: 'Agenda' },
+    events: [
+      @php
+        $tahun_skrg  = date('Y');
+        $bulan_skrg  = date('m');
+        $jmlh_bulan  = cal_days_in_month(CAL_GREGORIAN, $bulan_skrg, $tahun_skrg);
+        $tgl_mulai   = date('1945-01-01');
+        $tgl_akhir   = date('Y-m-' . $jmlh_bulan);
+
+        $data_user             = App\Models\User::select('name','tgl_lahir')->whereBetween('tgl_lahir', [$tgl_mulai, $tgl_akhir])->get();
+        $data_sakit            = App\Models\MappingShift::where('status_absen','Sakit')->whereBetween('tanggal', [$tgl_mulai, $tgl_akhir])->get();
+        $data_cuti             = App\Models\MappingShift::where('status_absen','Cuti')->whereBetween('tanggal', [$tgl_mulai, $tgl_akhir])->get();
+        $data_izin_masuk       = App\Models\MappingShift::where('status_absen','Izin Masuk')->whereBetween('tanggal', [$tgl_mulai, $tgl_akhir])->get();
+        $data_izin_telat       = App\Models\MappingShift::where('status_absen','Izin Telat')->whereBetween('tanggal', [$tgl_mulai, $tgl_akhir])->get();
+        $data_izin_pulang_cepat = App\Models\MappingShift::where('status_absen','Izin Pulang Cepat')->whereBetween('tanggal', [$tgl_mulai, $tgl_akhir])->get();
+      @endphp
+
+      @foreach($data_user as $du)
+        @php $p = explode("-", $du->tgl_lahir) @endphp
+        { title: '🎂 {{ $du->name }}', start: new Date(y, {{ $p[1]-1 }}, {{ $p[2] }}), allDay: true, backgroundColor: '#f59e0b', borderColor: '#f59e0b', textColor: '#000' },
+      @endforeach
+      @foreach($data_sakit as $ds)
+        @php $p = explode("-", $ds->tanggal) @endphp
+        { title: '🤒 {{ $ds->User->name }}', start: new Date({{ $p[0] }}, {{ $p[1]-1 }}, {{ $p[2] }}), allDay: true, backgroundColor: '#ef4444', borderColor: '#ef4444' },
+      @endforeach
+      @foreach($data_cuti as $dc)
+        @php $p = explode("-", $dc->tanggal) @endphp
+        { title: '🏖️ {{ $dc->User->name }}', start: new Date({{ $p[0] }}, {{ $p[1]-1 }}, {{ $p[2] }}), allDay: true, backgroundColor: '#8b5cf6', borderColor: '#8b5cf6' },
+      @endforeach
+      @foreach($data_izin_masuk as $dim)
+        @php $p = explode("-", $dim->tanggal) @endphp
+        { title: '📝 {{ $dim->User->name }}', start: new Date({{ $p[0] }}, {{ $p[1]-1 }}, {{ $p[2] }}), allDay: true, backgroundColor: '#06b6d4', borderColor: '#06b6d4' },
+      @endforeach
+      @foreach($data_izin_telat as $dit)
+        @php $p = explode("-", $dit->tanggal) @endphp
+        { title: '⏰ {{ $dit->User->name }}', start: new Date({{ $p[0] }}, {{ $p[1]-1 }}, {{ $p[2] }}), allDay: true, backgroundColor: '#f97316', borderColor: '#f97316' },
+      @endforeach
+      @foreach($data_izin_pulang_cepat as $dipc)
+        @php $p = explode("-", $dipc->tanggal) @endphp
+        { title: '🏃 {{ $dipc->User->name }}', start: new Date({{ $p[0] }}, {{ $p[1]-1 }}, {{ $p[2] }}), allDay: true, backgroundColor: '#10b981', borderColor: '#10b981' },
+      @endforeach
+    ],
+    droppable: true,
+    drop: function (arg) {
+      if (document.getElementById("drop-remove")?.checked) {
+        arg.draggedEl.parentNode.removeChild(arg.draggedEl);
+      }
+    }
   });
 
-  document.addEventListener("DOMContentLoaded", function () {
-    // Initialize Attendance Chart
-    @if(isset($chart_data))
-    var ctx = document.getElementById('attendanceChart');
-    if (ctx) {
-      var attendanceChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: {!! json_encode($chart_data['labels']) !!},
-          datasets: [
-            {
-              label: 'Hadir',
-              data: {!! json_encode($chart_data['hadir']) !!},
-              borderColor: '#10b981',
-              backgroundColor: 'rgba(16, 185, 129, 0.1)',
-              borderWidth: 2,
-              fill: false,
-              tension: 0.4,
-              pointRadius: 3,
-              pointHoverRadius: 5
-            },
-            {
-              label: 'Tidak Hadir',
-              data: {!! json_encode($chart_data['tidak_hadir']) !!},
-              borderColor: '#ef4444',
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-              borderWidth: 2,
-              fill: false,
-              tension: 0.4,
-              pointRadius: 3,
-              pointHoverRadius: 5
-            },
-            {
-              label: 'Libur',
-              data: {!! json_encode($chart_data['libur']) !!},
-              borderColor: '#06b6d4',
-              backgroundColor: 'rgba(6, 182, 212, 0.1)',
-              borderWidth: 2,
-              fill: false,
-              tension: 0.4,
-              pointRadius: 3,
-              pointHoverRadius: 5
-            },
-            {
-              label: 'Cuti',
-              data: {!! json_encode($chart_data['cuti']) !!},
-              borderColor: '#8b5cf6',
-              backgroundColor: 'rgba(139, 92, 246, 0.1)',
-              borderWidth: 2,
-              fill: false,
-              tension: 0.4,
-              pointRadius: 3,
-              pointHoverRadius: 5
-            },
-            {
-              label: 'Sakit',
-              data: {!! json_encode($chart_data['sakit']) !!},
-              borderColor: '#f59e0b',
-              backgroundColor: 'rgba(245, 158, 11, 0.1)',
-              borderWidth: 2,
-              fill: false,
-              tension: 0.4,
-              pointRadius: 3,
-              pointHoverRadius: 5
-            },
-            {
-              label: 'Izin',
-              data: {!! json_encode($chart_data['izin']) !!},
-              borderColor: '#f97316',
-              backgroundColor: 'rgba(249, 115, 22, 0.1)',
-              borderWidth: 2,
-              fill: false,
-              tension: 0.4,
-              pointRadius: 3,
-              pointHoverRadius: 5
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          aspectRatio: 2.5,
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top',
-              labels: {
-                usePointStyle: true,
-                padding: 15,
-                font: {
-                  size: 12,
-                  weight: '500'
-                }
-              }
-            },
-            tooltip: {
-              mode: 'index',
-              intersect: false,
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              titleColor: '#1f2937',
-              bodyColor: '#374151',
-              borderColor: '#e5e7eb',
-              borderWidth: 1,
-              padding: 12,
-              boxPadding: 6
-            }
-          },
-          scales: {
-            x: {
-              grid: {
-                display: true,
-                color: 'rgba(229, 231, 235, 0.5)',
-                drawBorder: false
-              },
-              ticks: {
-                font: {
-                  size: 11
-                },
-                color: '#6b7280'
-              }
-            },
-            y: {
-              beginAtZero: true,
-              grid: {
-                display: true,
-                color: 'rgba(229, 231, 235, 0.5)',
-                drawBorder: false
-              },
-              ticks: {
-                font: {
-                  size: 11
-                },
-                color: '#6b7280',
-                stepSize: 1
-              }
-            }
-          },
-          interaction: {
-            mode: 'nearest',
-            axis: 'x',
-            intersect: false
-          }
-        }
-      });
-    }
-    @endif
-
-    var date = new Date();
-    var d = date.getDate();
-    var m = date.getMonth();
-    var y = date.getFullYear();
-
-    var containerEl = document.getElementById("external-events-list");
-    if (containerEl) {
-      new FullCalendar.Draggable(containerEl, {
-        itemSelector: ".fc-event",
-        eventData: function (eventEl) {
-          return {
-            title: eventEl.innerText.trim(),
-          };
-        },
-      });
-    }
-
-    var calendarEl = document.getElementById("calendar");
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-      headerToolbar: {
-        left: "prev,next today",
-        center: "title",
-        right: window.innerWidth > 768 ? "dayGridMonth,timeGridWeek,timeGridDay,listWeek" : "dayGridMonth,listWeek",
-      },
-      initialView: "dayGridMonth",
-      navLinks: true,
-      editable: true,
-      selectable: true,
-      nowIndicator: true,
-      height: 'auto',
-      aspectRatio: window.innerWidth > 768 ? 1.8 : 1.2,
-      locale: 'id', // Bahasa Indonesia
-      buttonText: {
-        today: 'Hari Ini',
-        month: 'Bulan',
-        week: 'Minggu',
-        day: 'Hari',
-        list: 'Agenda'
-      },
-      events: [
-        @php
-          $tahun_skrg = date('Y');
-          $bulan_skrg = date('m');
-          $jmlh_bulan = cal_days_in_month(CAL_GREGORIAN,$bulan_skrg,$tahun_skrg);
-          $tgl_mulai = date('1945-01-01');
-          $tgl_akhir = date('Y-m-'.$jmlh_bulan);
-          $data_user = App\Models\User::select('name', 'tgl_lahir')->whereBetween('tgl_lahir', [$tgl_mulai, $tgl_akhir])->get();
-          $data_sakit = App\Models\MappingShift::where('status_absen', 'Sakit')->whereBetween('tanggal', [$tgl_mulai, $tgl_akhir])->get();
-          $data_cuti = App\Models\MappingShift::where('status_absen', 'Cuti')->whereBetween('tanggal', [$tgl_mulai, $tgl_akhir])->get();
-          $data_izin_masuk = App\Models\MappingShift::where('status_absen', 'Izin Masuk')->whereBetween('tanggal', [$tgl_mulai, $tgl_akhir])->get();
-          $data_izin_telat = App\Models\MappingShift::where('status_absen', 'Izin Telat')->whereBetween('tanggal', [$tgl_mulai, $tgl_akhir])->get();
-          $data_izin_pulang_cepat = App\Models\MappingShift::where('status_absen', 'Izin Pulang Cepat')->whereBetween('tanggal', [$tgl_mulai, $tgl_akhir])->get();
-        @endphp
-        @foreach($data_user as $du)
-          @php
-            $pecah = explode("-", $du->tgl_lahir)
-          @endphp
-          {
-            title: '🎂 {{ $du->name }}',
-            start: new Date(y, {{ $pecah[1]-1 }}, {{ $pecah[2] }}),
-            allDay: true,
-            backgroundColor: '#f59e0b',
-            borderColor: '#f59e0b',
-            textColor: '#000'
-          },
-        @endforeach
-        @foreach($data_sakit as $ds)
-          @php
-            $pecah2 = explode("-", $ds->tanggal)
-          @endphp
-          {
-            title: '🤒 {{ $ds->User->name }}',
-            start: new Date({{ $pecah2[0] }}, {{ $pecah2[1]-1 }}, {{ $pecah2[2] }}),
-            allDay: true,
-            backgroundColor: '#ef4444',
-            borderColor: '#ef4444'
-          },
-        @endforeach
-        @foreach($data_cuti as $dc)
-          @php
-            $pecah3 = explode("-", $dc->tanggal)
-          @endphp
-          {
-            title: '🏖️ {{ $dc->User->name }}',
-            start: new Date({{ $pecah3[0] }}, {{ $pecah3[1]-1 }}, {{ $pecah3[2] }}),
-            allDay: true,
-            backgroundColor: '#8b5cf6',
-            borderColor: '#8b5cf6'
-          },
-        @endforeach
-        @foreach($data_izin_masuk as $dim)
-          @php
-            $pecah4 = explode("-", $dim->tanggal)
-          @endphp
-          {
-            title: '📝 {{ $dim->User->name }}',
-            start: new Date({{ $pecah4[0] }}, {{ $pecah4[1]-1 }}, {{ $pecah4[2] }}),
-            allDay: true,
-            backgroundColor: '#06b6d4',
-            borderColor: '#06b6d4'
-          },
-        @endforeach
-        @foreach($data_izin_telat as $dit)
-          @php
-            $pecah5 = explode("-", $dit->tanggal)
-          @endphp
-          {
-            title: '⏰ {{ $dit->User->name }}',
-            start: new Date({{ $pecah5[0] }}, {{ $pecah5[1]-1 }}, {{ $pecah5[2] }}),
-            allDay: true,
-            backgroundColor: '#f97316',
-            borderColor: '#f97316'
-          },
-        @endforeach
-        @foreach($data_izin_pulang_cepat as $dipc)
-          @php
-            $pecah6 = explode("-", $dipc->tanggal)
-          @endphp
-          {
-            title: '🏃 {{ $dipc->User->name }}',
-            start: new Date({{ $pecah6[0] }}, {{ $pecah6[1]-1 }}, {{ $pecah6[2] }}),
-            allDay: true,
-            backgroundColor: '#10b981',
-            borderColor: '#10b981'
-          },
-        @endforeach
-      ],
-      editable: true,
-      droppable: true,
-      drop: function (arg) {
-        if (document.getElementById("drop-remove") && document.getElementById("drop-remove").checked) {
-          arg.draggedEl.parentNode.removeChild(arg.draggedEl);
-        }
-      },
+  window.addEventListener('resize', function () {
+    calendar.setOption('aspectRatio', window.innerWidth > 768 ? 1.8 : 1.2);
+    calendar.setOption('headerToolbar', {
+      left: "prev,next today", center: "title",
+      right: window.innerWidth > 768 ? "dayGridMonth,timeGridWeek,timeGridDay,listWeek" : "dayGridMonth,listWeek"
     });
+  });
 
-    // Responsive calendar adjustment
-    window.addEventListener('resize', function() {
-      calendar.setOption('aspectRatio', window.innerWidth > 768 ? 1.8 : 1.2);
-      calendar.setOption('headerToolbar', {
-        left: "prev,next today",
-        center: "title",
-        right: window.innerWidth > 768 ? "dayGridMonth,timeGridWeek,timeGridDay,listWeek" : "dayGridMonth,listWeek",
-      });
-    });
+  calendar.render();
 
-    calendar.render();
+  // ─────────────────────────────────────────────
+  // REALTIME POLLING
+  // ─────────────────────────────────────────────
+  const INTERVAL_MS = 30000; // 30 detik
 
-    // Add loading animation
+  function setEl(id, val) {
+    const el = document.getElementById(id);
+    if (!el || el.textContent == val) return;
+    el.classList.add('rt-updating');
     setTimeout(() => {
-      document.querySelectorAll('.modern-stat-card, .metric-card, .financial-card').forEach((card, index) => {
-        card.style.animation = `fadeInUp 0.6s ease forwards ${index * 0.1}s`;
+      el.textContent = val;
+      el.classList.remove('rt-updating');
+      el.classList.add('rt-flash');
+      setTimeout(() => el.classList.remove('rt-flash'), 700);
+    }, 150);
+  }
+
+  function setTrend(wrapperId, textId, value, suffix) {
+    const wrapper = document.getElementById(wrapperId);
+    const span    = document.getElementById(textId);
+    if (!wrapper || !span) return;
+    wrapper.classList.remove('positive', 'negative');
+    if (value > 0) {
+      wrapper.classList.add('positive');
+      span.textContent = `+${value}% ${suffix}`;
+    } else if (value < 0) {
+      wrapper.classList.add('negative');
+      span.textContent = `${value}% ${suffix}`;
+    } else {
+      span.textContent = `Stabil ${suffix}`;
+    }
+  }
+
+  function updateClock() {
+    const now = new Date();
+    const hh  = String(now.getHours()).padStart(2,'0');
+    const mm  = String(now.getMinutes()).padStart(2,'0');
+    const ss  = String(now.getSeconds()).padStart(2,'0');
+    const el  = document.querySelector('.current-time');
+    if (el) el.textContent = `${hh}:${mm}:${ss}`;
+  }
+
+  function updateChart(data) {
+    if (!attendanceChart || !data) return;
+    attendanceChart.data.labels           = data.labels;
+    attendanceChart.data.datasets[0].data = data.hadir;
+    attendanceChart.data.datasets[1].data = data.tidak_hadir;
+    attendanceChart.data.datasets[2].data = data.libur;
+    attendanceChart.data.datasets[3].data = data.cuti;
+    attendanceChart.data.datasets[4].data = data.sakit;
+    attendanceChart.data.datasets[5].data = data.izin;
+    attendanceChart.update('none');
+  }
+
+  async function fetchStats() {
+    try {
+      const res  = await fetch('{{ route("dashboard.realtime") }}', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
-    }, 100);
-  });
+      if (!res.ok) throw new Error(res.status);
+      const d = await res.json();
+
+      // Stat cards
+      setEl('val-total-pegawai', d.jumlah_user);
+      setEl('val-hadir',         d.hadir);
+      setEl('val-tidak-hadir',   d.tidak_hadir);
+      setEl('val-libur',         d.libur);
+      setEl('hadir-persen',      d.hadir_persen + '%');
+
+      // Trends
+      setTrend('trend-hadir',        'hadir-persen',           d.trend_hadir,       'vs kemarin');
+      setTrend('trend-tidak-hadir',  'trend-tidak-hadir-text', d.trend_tidak_hadir, 'vs kemarin');
+      setTrend('trend-pegawai',      'trend-pegawai-text',     d.trend_user,        'bulan ini');
+
+      // Metric cards
+      setEl('val-lembur',            d.lembur);
+      setEl('val-cuti',              d.cuti);
+      setEl('val-sakit',             d.sakit);
+      setEl('val-izin',              d.izin);
+      setEl('val-izin-telat',        d.izin_telat);
+      setEl('val-izin-pulang-cepat', d.izin_pulang_cepat);
+
+      // Financial
+      setEl('val-payroll',        d.payroll_format);
+      setEl('val-kasbon',         d.kasbon_format);
+      setEl('val-reimbursement',  d.reimbursement_format);
+
+      // Chart & timestamp
+      updateChart(d.chart_data);
+      setEl('last-updated', d.last_updated);
+
+    } catch (err) {
+      console.warn('[Dashboard] Polling gagal:', err);
+    }
+  }
+
+  // Jam update tiap detik, data tiap 30 detik
+  setInterval(updateClock, 1000);
+  setInterval(fetchStats, INTERVAL_MS);
+  setTimeout(fetchStats, 3000); // fetch pertama 3 detik setelah load
+});
 </script>
 
 <style>
+  /* Live badge */
+  .live-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(16,185,129,0.1); color: #065f46;
+    padding: 5px 14px; border-radius: 50px;
+    font-size: 0.8rem; font-weight: 500;
+    border: 1px solid rgba(16,185,129,0.25);
+  }
+  .live-dot {
+    width: 8px; height: 8px; background: #10b981;
+    border-radius: 50%; flex-shrink: 0;
+    animation: blink 1.5s infinite;
+  }
+  @keyframes blink {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:0.4; transform:scale(0.7); }
+  }
+
+  /* Animasi update nilai */
+  .rt-updating { opacity: 0.3; transition: opacity 0.15s; }
+  .rt-flash    { color: #10b981 !important; transition: color 0.7s ease; }
+
   @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity:0; transform:translateY(30px); }
+    to   { opacity:1; transform:translateY(0); }
   }
 </style>
 @endpush

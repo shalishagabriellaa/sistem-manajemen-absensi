@@ -23,28 +23,34 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Storage;
 use RealRashid\SweetAlert\Facades\Alert;
-
-
 
 class karyawanController extends Controller
 {
-    /**
-     * Check if user has admin-level access
-     */
     private function hasAdminAccess()
     {
         $adminRoles = ['admin', 'hrd', 'kepala_cabang', 'general_manager', 'finance', 'regional_manager'];
-        
         foreach ($adminRoles as $role) {
             if (auth()->user()->hasRole($role)) {
                 return true;
             }
         }
-        
         return false;
     }
+
+    private function uploadFoto($file, $folder)
+    {
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $dir = $_SERVER['DOCUMENT_ROOT'] . '/uploads/' . $folder;
+
+        if (!file_exists($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $file->move($dir, $filename);
+        return 'uploads/' . $folder . '/' . $filename;
+    }
+
     public function index()
     {
         $search = request()->input('search');
@@ -56,17 +62,17 @@ class karyawanController extends Controller
                     ->when($search, function ($query) use ($search) {
                         return $query->where(function ($subQuery) use ($search) {
                             $subQuery->where('name', 'LIKE', '%'.$search.'%')
-                          ->orWhere('email', 'LIKE', '%'.$search.'%')
-                          ->orWhere('telepon', 'LIKE', '%'.$search.'%')
-                          ->orWhere('username', 'LIKE', '%'.$search.'%')
-                          ->orWhereHas('Jabatan', function ($query) use ($search) {
-                              $query->where('nama_jabatan', 'LIKE', '%'.$search.'%');
-                                    });
-                          });
-                })
-                ->orderBy('name', 'ASC')
-                ->paginate(10)
-                ->withQueryString();
+                                ->orWhere('email', 'LIKE', '%'.$search.'%')
+                                ->orWhere('telepon', 'LIKE', '%'.$search.'%')
+                                ->orWhere('username', 'LIKE', '%'.$search.'%')
+                                ->orWhereHas('Jabatan', function ($query) use ($search) {
+                                    $query->where('nama_jabatan', 'LIKE', '%'.$search.'%');
+                                });
+                        });
+                    })
+                    ->orderBy('name', 'ASC')
+                    ->paginate(10)
+                    ->withQueryString();
 
         $jabatan = \App\Models\Jabatan::select('id', 'nama_jabatan')->get();
 
@@ -87,7 +93,6 @@ class karyawanController extends Controller
 
     public function kontrak($id)
     {
-
         $user = User::find($id);
         $title = 'List Kontrak';
         $kontraks = Kontrak::where('user_id', $id)
@@ -95,11 +100,7 @@ class karyawanController extends Controller
                             ->paginate(10)
                             ->withQueryString();
 
-        return view('karyawan.kontrak', compact(
-            'title',
-            'kontraks',
-            'user'
-        ));
+        return view('karyawan.kontrak', compact('title', 'kontraks', 'user'));
     }
 
     public function export()
@@ -107,25 +108,17 @@ class karyawanController extends Controller
         return (new PegawaiExport($_GET))->download('List Pegawai.xlsx');
     }
 
-
     public function kartuPegawai()
     {
         $title = 'Kartu Pegawai';
-
-        return view('karyawan.kartuPegawai', compact(
-            'title',
-        ));
+        return view('karyawan.kartuPegawai', compact('title'));
     }
 
     public function qrcode($id)
     {
         $title = 'Kartu';
         $user = User::find($id);
-
-        return view('karyawan.qrcode', compact(
-            'title',
-            'user',
-        ));
+        return view('karyawan.qrcode', compact('title', 'user'));
     }
 
     public function print($id)
@@ -135,7 +128,6 @@ class karyawanController extends Controller
             'title' => 'Kartu',
             'user' => $user
         ]);
-
         $pdf->setPaper('A6', 'portrait');
         return $pdf->stream('kartu-pegawai.pdf');
     }
@@ -143,7 +135,6 @@ class karyawanController extends Controller
     public function euforia()
     {
         date_default_timezone_set(config('app.timezone'));
-
         $data = User::where('tgl_lahir', date('Y-m-d'))
                 ->orderBy('name', 'ASC')
                 ->paginate(10)
@@ -153,13 +144,11 @@ class karyawanController extends Controller
             'title' => 'Euforia',
             'data_user' => $data
         ]);
-
     }
 
     public function show($id)
     {
         $user = User::find($id);
-
         return view('karyawan.show', [
             'title' => 'Detail Karyawan',
             'user' => $user
@@ -171,177 +160,119 @@ class karyawanController extends Controller
         $request->validate([
             'file_excel' => 'required|mimes:xls,xlsx,csv|max:5000'
         ]);
-        $nama_file = $request->file('file_excel')->store('file_excel');
 
-        Excel::import(new UsersImport, public_path('/storage/'.$nama_file));
+        $file     = $request->file('file_excel');
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $dir      = $_SERVER['DOCUMENT_ROOT'] . '/uploads/file_excel';
+
+        if (!file_exists($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $file->move($dir, $filename);
+        $filePath = $dir . '/' . $filename;
+
+        Excel::import(new UsersImport, $filePath);
         return back()->with('success', 'Data Berhasil Di Import');
     }
 
     public function tambahKaryawan()
     {
-        return view('karyawan.tambah',[
-            "title" => 'Tambah Pegawai',
+        return view('karyawan.tambah', [
+            "title"       => 'Tambah Pegawai',
             "data_jabatan" => Jabatan::all(),
-            "data_lokasi" => Lokasi::where('status', 'approved')->where('keterangan', 'Office')->get(),
+            "data_lokasi"  => Lokasi::where('status', 'approved')->where('keterangan', 'Office')->get(),
             "status_pajak" => StatusPajak::orderBy('id')->get(),
-            "roles" => Role::orderBy('name')->get()
+            "roles"        => Role::orderBy('name')->get()
         ]);
     }
 
     public function tambahKaryawanProses(Request $request)
     {
         $validatedData = $request->validate([
-            'name' => 'required|max:255',
-            'email' => 'required|email:dns|unique:users,email',
-            'telepon' => 'required',
-            'foto_karyawan' => 'nullable|image|file|max:10240',
-            'username' => 'required|max:255|unique:users,username',
-            'password' => 'required|min:6|max:255',
-
-            'lokasi_id' => 'required',
-            'tgl_lahir' => 'required|date',
-            'tgl_join' => 'required|date',
-
-            'gender' => 'required',
-            'status_nikah' => 'required',
-            'is_admin' => 'required',
-
-            'status_pajak_id' => 'required',
-            'jabatan_id' => 'required',
-
-            'ktp' => 'required',
-            'kartu_keluarga' => 'required',
-            'bpjs_kesehatan' => 'required',
-            'bpjs_ketenagakerjaan' => 'required',
-            'npwp' => 'required',
-
-            'sim' => 'required',
-
-            'no_pkwt' => 'required',
-            'no_kontrak' => 'required',
-
-            'tanggal_mulai_pkwt' => 'required|date',
-            'tanggal_berakhir_pkwt' => 'required|date',
-
-            'rekening' => 'required',
-            'nama_rekening' => 'required',
-
-            'alamat' => 'required',
-
-            'masa_berlaku' => 'required|date',
-
-            'gaji_pokok' => 'required',
-            'tunjangan_bpjs_kesehatan' => 'required',
-            'tunjangan_bpjs_ketenagakerjaan' => 'required',
-            'thr' => 'required',
-
-            'potongan_bpjs_kesehatan' => 'required',
-            'potongan_bpjs_ketenagakerjaan' => 'required',
-
-        ],[
-            'name.required' => 'Nama wajib diisi',
-            'name.max' => 'Nama maksimal 255 karakter',
-
-            'email.required' => 'Email wajib diisi',
-            'email.email' => 'Format email tidak valid',
-            'email.unique' => 'Email sudah digunakan',
-
-            'telepon.required' => 'Nomor handphone wajib diisi',
-
-            'username.required' => 'Username wajib diisi',
-            'username.unique' => 'Username sudah digunakan',
-
-            'password.required' => 'Password wajib diisi',
-            'password.min' => 'Password minimal 6 karakter',
-
-            'lokasi_id.required' => 'Lokasi kantor wajib dipilih',
-
-            'tgl_lahir.required' => 'Tanggal lahir wajib diisi',
-            'tgl_join.required' => 'Tanggal masuk perusahaan wajib diisi',
-
-            'gender.required' => 'Gender wajib dipilih',
-
-            'status_nikah.required' => 'Status pernikahan wajib dipilih',
-
-            'is_admin.required' => 'Dashboard role wajib dipilih',
-
-            'status_pajak_id.required' => 'Status pajak wajib dipilih',
-
-            'jabatan_id.required' => 'Divisi wajib dipilih',
-
-            'ktp.required' => 'Nomor KTP wajib diisi',
-
-            'kartu_keluarga.required' => 'Nomor kartu keluarga wajib diisi',
-
-            'bpjs_kesehatan.required' => 'Nomor BPJS kesehatan wajib diisi',
-
-            'bpjs_ketenagakerjaan.required' => 'Nomor BPJS ketenagakerjaan wajib diisi',
-
-            'npwp.required' => 'Nomor NPWP wajib diisi',
-
-            'sim.required' => 'Nomor SIM wajib diisi',
-
-            'no_pkwt.required' => 'Nomor PKWT wajib diisi',
-
-            'no_kontrak.required' => 'Nomor kontrak wajib diisi',
-
-            'tanggal_mulai_pkwt.required' => 'Tanggal mulai PKWT wajib diisi',
-
-            'tanggal_berakhir_pkwt.required' => 'Tanggal berakhir PKWT wajib diisi',
-
-            'rekening.required' => 'Nomor rekening wajib diisi',
-
-            'nama_rekening.required' => 'Nama pemilik rekening wajib diisi',
-
-            'alamat.required' => 'Alamat wajib diisi',
-
-            'masa_berlaku.required' => 'Masa berlaku kontrak wajib diisi',
-
-            'gaji_pokok.required' => 'Gaji pokok wajib diisi',
-
-            'tunjangan_bpjs_kesehatan.required' => 'Tunjangan BPJS kesehatan wajib diisi',
-
-            'tunjangan_bpjs_ketenagakerjaan.required' => 'Tunjangan BPJS ketenagakerjaan wajib diisi',
-
-            'thr.required' => 'THR wajib diisi',
-
-            'potongan_bpjs_kesehatan.required' => 'Potongan BPJS kesehatan wajib diisi',
-
-            'potongan_bpjs_ketenagakerjaan.required' => 'Potongan BPJS ketenagakerjaan wajib diisi',
+            'name'                          => 'required|max:255',
+            'email'                         => 'required|email:dns|unique:users',
+            'telepon'                       => 'required',
+            'foto_karyawan'                 => 'image|file|max:10240',
+            'username'                      => 'required|max:255|unique:users',
+            'password'                      => 'required|min:6|max:255',
+            'lokasi_id'                     => 'required',
+            'tgl_lahir'                     => 'required',
+            'tgl_join'                      => 'required',
+            'gender'                        => 'required',
+            'status_nikah'                  => 'nullable',
+            'is_admin'                      => 'required',
+            'status_pajak_id'               => 'required',
+            'jabatan_id'                    => 'required',
+            'ktp'                           => 'nullable',
+            'kartu_keluarga'                => 'nullable',
+            'bpjs_kesehatan'                => 'nullable',
+            'bpjs_ketenagakerjaan'          => 'nullable',
+            'npwp'                          => 'nullable',
+            'sim'                           => 'nullable',
+            'no_pkwt'                       => 'nullable',
+            'no_kontrak'                    => 'nullable',
+            'tanggal_mulai_pkwt'            => 'nullable',
+            'tanggal_berakhir_pkwt'         => 'nullable',
+            'rekening'                      => 'nullable',
+            'nama_rekening'                 => 'nullable',
+            'alamat'                        => 'nullable',
+            'izin_cuti'                     => 'nullable',
+            'izin_lainnya'                  => 'nullable',
+            'izin_telat'                    => 'nullable',
+            'izin_pulang_cepat'             => 'nullable',
+            'gaji_pokok'                    => 'nullable',
+            'tunjangan_makan'               => 'nullable',
+            'tunjangan_transport'           => 'nullable',
+            'tunjangan_bpjs_kesehatan'      => 'nullable',
+            'tunjangan_bpjs_ketenagakerjaan'=> 'nullable',
+            'lembur'                        => 'nullable',
+            'kehadiran'                     => 'nullable',
+            'thr'                           => 'nullable',
+            'bonus_pribadi'                 => 'nullable',
+            'bonus_team'                    => 'nullable',
+            'bonus_jackpot'                 => 'nullable',
+            'izin'                          => 'nullable',
+            'terlambat'                     => 'nullable',
+            'mangkir'                       => 'nullable',
+            'saldo_kasbon'                  => 'nullable',
+            'potongan_bpjs_kesehatan'       => 'nullable',
+            'potongan_bpjs_ketenagakerjaan' => 'nullable',
+            'masa_berlaku'                  => 'nullable',
         ]);
 
-        $validatedData["izin_cuti"] = $request->izin_cuti ?? 0;
-        $validatedData["izin_lainnya"] = $request->izin_lainnya ?? 0;
-        $validatedData["izin_telat"] = $request->izin_telat ?? 0;
-        $validatedData["izin_pulang_cepat"] = $request->izin_pulang_cepat ?? 0;
+        $validatedData["izin_cuti"]          = $request->izin_cuti ?? 0;
+        $validatedData["izin_lainnya"]       = $request->izin_lainnya ?? 0;
+        $validatedData["izin_telat"]         = $request->izin_telat ?? 0;
+        $validatedData["izin_pulang_cepat"]  = $request->izin_pulang_cepat ?? 0;
 
-        $validatedData['gaji_pokok'] = $request->gaji_pokok ? str_replace(',', '', $request->gaji_pokok) : 0;
-        $validatedData['tunjangan_makan'] = $request->tunjangan_makan ? str_replace(',', '', $request->tunjangan_makan) : 0;
-        $validatedData['tunjangan_transport'] = $request->tunjangan_transport ? str_replace(',', '', $request->tunjangan_transport) : 0;
-        $validatedData['tunjangan_bpjs_kesehatan'] = $request->tunjangan_bpjs_kesehatan ? str_replace(',', '', $request->tunjangan_bpjs_kesehatan) : 0;
+        $validatedData['gaji_pokok']                     = $request->gaji_pokok ? str_replace(',', '', $request->gaji_pokok) : 0;
+        $validatedData['tunjangan_makan']                = $request->tunjangan_makan ? str_replace(',', '', $request->tunjangan_makan) : 0;
+        $validatedData['tunjangan_transport']            = $request->tunjangan_transport ? str_replace(',', '', $request->tunjangan_transport) : 0;
+        $validatedData['tunjangan_bpjs_kesehatan']       = $request->tunjangan_bpjs_kesehatan ? str_replace(',', '', $request->tunjangan_bpjs_kesehatan) : 0;
         $validatedData['tunjangan_bpjs_ketenagakerjaan'] = $request->tunjangan_bpjs_ketenagakerjaan ? str_replace(',', '', $request->tunjangan_bpjs_ketenagakerjaan) : 0;
-        $validatedData['lembur'] = $request->lembur ? str_replace(',', '', $request->lembur) : 0;
-        $validatedData['kehadiran'] = $request->kehadiran ? str_replace(',', '', $request->kehadiran) : 0;
-        $validatedData['thr'] = $request->thr ? str_replace(',', '', $request->thr) : 0;
-        $validatedData['bonus_pribadi'] = $request->bonus_pribadi ? str_replace(',', '', $request->bonus_pribadi) : 0;
-        $validatedData['bonus_team'] = $request->bonus_team ? str_replace(',', '', $request->bonus_team) : 0;
-        $validatedData['bonus_jackpot'] = $request->bonus_jackpot ? str_replace(',', '', $request->bonus_jackpot) : 0;
-        $validatedData['izin'] = $request->izin ? str_replace(',', '', $request->izin) : 0;
-        $validatedData['terlambat'] = $request->terlambat ? str_replace(',', '', $request->terlambat) : 0;
-        $validatedData['mangkir'] = $request->mangkir ? str_replace(',', '', $request->mangkir) : 0;
-        $validatedData['saldo_kasbon'] = $request->saldo_kasbon ? str_replace(',', '', $request->saldo_kasbon) : 0;
-        $validatedData['potongan_bpjs_kesehatan'] = $request->potongan_bpjs_kesehatan ? str_replace(',', '', $request->potongan_bpjs_kesehatan) : 0;
-        $validatedData['potongan_bpjs_ketenagakerjaan'] = $request->potongan_bpjs_ketenagakerjaan ? str_replace(',', '', $request->potongan_bpjs_ketenagakerjaan) : 0;
+        $validatedData['lembur']                         = $request->lembur ? str_replace(',', '', $request->lembur) : 0;
+        $validatedData['kehadiran']                      = $request->kehadiran ? str_replace(',', '', $request->kehadiran) : 0;
+        $validatedData['thr']                            = $request->thr ? str_replace(',', '', $request->thr) : 0;
+        $validatedData['bonus_pribadi']                  = $request->bonus_pribadi ? str_replace(',', '', $request->bonus_pribadi) : 0;
+        $validatedData['bonus_team']                     = $request->bonus_team ? str_replace(',', '', $request->bonus_team) : 0;
+        $validatedData['bonus_jackpot']                  = $request->bonus_jackpot ? str_replace(',', '', $request->bonus_jackpot) : 0;
+        $validatedData['izin']                           = $request->izin ? str_replace(',', '', $request->izin) : 0;
+        $validatedData['terlambat']                      = $request->terlambat ? str_replace(',', '', $request->terlambat) : 0;
+        $validatedData['mangkir']                        = $request->mangkir ? str_replace(',', '', $request->mangkir) : 0;
+        $validatedData['saldo_kasbon']                   = $request->saldo_kasbon ? str_replace(',', '', $request->saldo_kasbon) : 0;
+        $validatedData['potongan_bpjs_kesehatan']        = $request->potongan_bpjs_kesehatan ? str_replace(',', '', $request->potongan_bpjs_kesehatan) : 0;
+        $validatedData['potongan_bpjs_ketenagakerjaan']  = $request->potongan_bpjs_ketenagakerjaan ? str_replace(',', '', $request->potongan_bpjs_ketenagakerjaan) : 0;
 
         if ($request->file('foto_karyawan')) {
-            $validatedData['foto_karyawan'] = $request->file('foto_karyawan')->store('foto_karyawan');
+            $validatedData['foto_karyawan'] = $this->uploadFoto($request->file('foto_karyawan'), 'foto_karyawan');
         }
 
         $validatedData['password'] = Hash::make($validatedData['password']);
         $user = User::create($validatedData);
 
         if ($request->role) {
-            foreach($request->role as $role){
+            foreach ($request->role as $role) {
                 $user->assignRole($role);
             }
         }
@@ -353,70 +284,70 @@ class karyawanController extends Controller
     {
         $user = User::find($id);
         return view('karyawan.editkaryawan', [
-            'title' => 'Detail Pegawai',
-            'karyawan' => $user,
+            'title'        => 'Detail Pegawai',
+            'karyawan'     => $user,
             'data_jabatan' => Jabatan::all(),
-            "data_lokasi" => Lokasi::where('status', 'approved')->where('keterangan', 'Office')->get(),
+            "data_lokasi"  => Lokasi::where('status', 'approved')->where('keterangan', 'Office')->get(),
             "status_pajak" => StatusPajak::orderBy('id')->get(),
-            "roles" => Role::orderBy('name')->get(),
-            'user_roles' => $user->roles->pluck('name')->toArray()
+            "roles"        => Role::orderBy('name')->get(),
+            'user_roles'   => $user->roles->pluck('name')->toArray()
         ]);
     }
 
     public function editKaryawanProses(Request $request, $id)
     {
         $rules = [
-            'name' => 'required|max:255',
-            'telepon' => 'required',
-            'foto_karyawan' => 'image|file|max:10240',
-            'lokasi_id' => 'required',
-            'tgl_lahir' => 'required',
-            'tgl_join' => 'required',
-            'gender' => 'required',
-            'status_nikah' => 'nullable',
-            'is_admin' => 'required',
-            'status_pajak_id' => 'required',
-            'jabatan_id' => 'required',
-            'ktp' => 'nullable',
-            'kartu_keluarga' => 'nullable',
-            'bpjs_kesehatan' => 'nullable',
-            'bpjs_ketenagakerjaan' => 'nullable',
-            'npwp' => 'nullable',
-            'sim' => 'nullable',
-            'no_pkwt' => 'nullable',
-            'no_kontrak' => 'nullable',
-            'tanggal_mulai_pkwt' => 'nullable',
-            'tanggal_berakhir_pkwt' => 'nullable',
-            'rekening' => 'nullable',
-            'nama_rekening' => 'nullable',
-            'alamat' => 'nullable',
-            'izin_cuti' => 'nullable',
-            'izin_lainnya' => 'nullable',
-            'izin_telat' => 'nullable',
-            'izin_pulang_cepat' => 'nullable',
-            'gaji_pokok' => 'nullable',
-            'tunjangan_makan' => 'nullable',
-            'tunjangan_transport' => 'nullable',
-            'tunjangan_bpjs_kesehatan' => 'nullable',
-            'tunjangan_bpjs_ketenagakerjaan' => 'nullable',
-            'lembur' => 'nullable',
-            'kehadiran' => 'nullable',
-            'thr' => 'nullable',
-            'bonus_pribadi' => 'nullable',
-            'bonus_team' => 'nullable',
-            'bonus_jackpot' => 'nullable',
-            'izin' => 'nullable',
-            'terlambat' => 'nullable',
-            'mangkir' => 'nullable',
-            'saldo_kasbon' => 'nullable',
-            'potongan_bpjs_kesehatan' => 'nullable',
+            'name'                          => 'required|max:255',
+            'telepon'                       => 'required',
+            'foto_karyawan'                 => 'image|file|max:10240',
+            'lokasi_id'                     => 'required',
+            'tgl_lahir'                     => 'required',
+            'tgl_join'                      => 'required',
+            'gender'                        => 'required',
+            'status_nikah'                  => 'nullable',
+            'is_admin'                      => 'required',
+            'status_pajak_id'               => 'required',
+            'jabatan_id'                    => 'required',
+            'ktp'                           => 'nullable',
+            'kartu_keluarga'                => 'nullable',
+            'bpjs_kesehatan'                => 'nullable',
+            'bpjs_ketenagakerjaan'          => 'nullable',
+            'npwp'                          => 'nullable',
+            'sim'                           => 'nullable',
+            'no_pkwt'                       => 'nullable',
+            'no_kontrak'                    => 'nullable',
+            'tanggal_mulai_pkwt'            => 'nullable',
+            'tanggal_berakhir_pkwt'         => 'nullable',
+            'rekening'                      => 'nullable',
+            'nama_rekening'                 => 'nullable',
+            'alamat'                        => 'nullable',
+            'izin_cuti'                     => 'nullable',
+            'izin_lainnya'                  => 'nullable',
+            'izin_telat'                    => 'nullable',
+            'izin_pulang_cepat'             => 'nullable',
+            'gaji_pokok'                    => 'nullable',
+            'tunjangan_makan'               => 'nullable',
+            'tunjangan_transport'           => 'nullable',
+            'tunjangan_bpjs_kesehatan'      => 'nullable',
+            'tunjangan_bpjs_ketenagakerjaan'=> 'nullable',
+            'lembur'                        => 'nullable',
+            'kehadiran'                     => 'nullable',
+            'thr'                           => 'nullable',
+            'bonus_pribadi'                 => 'nullable',
+            'bonus_team'                    => 'nullable',
+            'bonus_jackpot'                 => 'nullable',
+            'izin'                          => 'nullable',
+            'terlambat'                     => 'nullable',
+            'mangkir'                       => 'nullable',
+            'saldo_kasbon'                  => 'nullable',
+            'potongan_bpjs_kesehatan'       => 'nullable',
             'potongan_bpjs_ketenagakerjaan' => 'nullable',
-            'masa_berlaku' => 'nullable',
+            'masa_berlaku'                  => 'nullable',
         ];
 
         $user = User::find($id);
 
-        foreach($user->roles as $r){
+        foreach ($user->roles as $r) {
             $user->removeRole($r->name);
         }
 
@@ -430,39 +361,39 @@ class karyawanController extends Controller
 
         $validatedData = $request->validate($rules);
 
-        $validatedData["izin_cuti"] = $request->izin_cuti ?? 0;
-        $validatedData["izin_lainnya"] = $request->izin_lainnya ?? 0;
-        $validatedData["izin_telat"] = $request->izin_telat ?? 0;
+        $validatedData["izin_cuti"]         = $request->izin_cuti ?? 0;
+        $validatedData["izin_lainnya"]      = $request->izin_lainnya ?? 0;
+        $validatedData["izin_telat"]        = $request->izin_telat ?? 0;
         $validatedData["izin_pulang_cepat"] = $request->izin_pulang_cepat ?? 0;
 
-        $validatedData['gaji_pokok'] = $request->gaji_pokok ? str_replace(',', '', $request->gaji_pokok) : 0;
-        $validatedData['tunjangan_makan'] = $request->tunjangan_makan ? str_replace(',', '', $request->tunjangan_makan) : 0;
-        $validatedData['tunjangan_transport'] = $request->tunjangan_transport ? str_replace(',', '', $request->tunjangan_transport) : 0;
-        $validatedData['tunjangan_bpjs_kesehatan'] = $request->tunjangan_bpjs_kesehatan ? str_replace(',', '', $request->tunjangan_bpjs_kesehatan) : 0;
+        $validatedData['gaji_pokok']                     = $request->gaji_pokok ? str_replace(',', '', $request->gaji_pokok) : 0;
+        $validatedData['tunjangan_makan']                = $request->tunjangan_makan ? str_replace(',', '', $request->tunjangan_makan) : 0;
+        $validatedData['tunjangan_transport']            = $request->tunjangan_transport ? str_replace(',', '', $request->tunjangan_transport) : 0;
+        $validatedData['tunjangan_bpjs_kesehatan']       = $request->tunjangan_bpjs_kesehatan ? str_replace(',', '', $request->tunjangan_bpjs_kesehatan) : 0;
         $validatedData['tunjangan_bpjs_ketenagakerjaan'] = $request->tunjangan_bpjs_ketenagakerjaan ? str_replace(',', '', $request->tunjangan_bpjs_ketenagakerjaan) : 0;
-        $validatedData['makan_transport'] = $request->makan_transport ? str_replace(',', '', $request->makan_transport) : 0;
-        $validatedData['lembur'] = $request->lembur ? str_replace(',', '', $request->lembur) : 0;
-        $validatedData['kehadiran'] = $request->kehadiran ? str_replace(',', '', $request->kehadiran) : 0;
-        $validatedData['thr'] = $request->thr ? str_replace(',', '', $request->thr) : 0;
-        $validatedData['bonus_pribadi'] = $request->bonus_pribadi ? str_replace(',', '', $request->bonus_pribadi) : 0;
-        $validatedData['bonus_team'] = $request->bonus_team ? str_replace(',', '', $request->bonus_team) : 0;
-        $validatedData['bonus_jackpot'] = $request->bonus_jackpot ? str_replace(',', '', $request->bonus_jackpot) : 0;
-        $validatedData['izin'] = $request->izin ? str_replace(',', '', $request->izin) : 0;
-        $validatedData['terlambat'] = $request->terlambat ? str_replace(',', '', $request->terlambat) : 0;
-        $validatedData['mangkir'] = $request->mangkir ? str_replace(',', '', $request->mangkir) : 0;
-        $validatedData['saldo_kasbon'] = $request->saldo_kasbon ? str_replace(',', '', $request->saldo_kasbon) : 0;
-        $validatedData['potongan_bpjs_kesehatan'] = $request->potongan_bpjs_kesehatan ? str_replace(',', '', $request->potongan_bpjs_kesehatan) : 0;
-        $validatedData['potongan_bpjs_ketenagakerjaan'] = $request->potongan_bpjs_ketenagakerjaan ? str_replace(',', '', $request->potongan_bpjs_ketenagakerjaan) : 0;
+        $validatedData['makan_transport']                = $request->makan_transport ? str_replace(',', '', $request->makan_transport) : 0;
+        $validatedData['lembur']                         = $request->lembur ? str_replace(',', '', $request->lembur) : 0;
+        $validatedData['kehadiran']                      = $request->kehadiran ? str_replace(',', '', $request->kehadiran) : 0;
+        $validatedData['thr']                            = $request->thr ? str_replace(',', '', $request->thr) : 0;
+        $validatedData['bonus_pribadi']                  = $request->bonus_pribadi ? str_replace(',', '', $request->bonus_pribadi) : 0;
+        $validatedData['bonus_team']                     = $request->bonus_team ? str_replace(',', '', $request->bonus_team) : 0;
+        $validatedData['bonus_jackpot']                  = $request->bonus_jackpot ? str_replace(',', '', $request->bonus_jackpot) : 0;
+        $validatedData['izin']                           = $request->izin ? str_replace(',', '', $request->izin) : 0;
+        $validatedData['terlambat']                      = $request->terlambat ? str_replace(',', '', $request->terlambat) : 0;
+        $validatedData['mangkir']                        = $request->mangkir ? str_replace(',', '', $request->mangkir) : 0;
+        $validatedData['saldo_kasbon']                   = $request->saldo_kasbon ? str_replace(',', '', $request->saldo_kasbon) : 0;
+        $validatedData['potongan_bpjs_kesehatan']        = $request->potongan_bpjs_kesehatan ? str_replace(',', '', $request->potongan_bpjs_kesehatan) : 0;
+        $validatedData['potongan_bpjs_ketenagakerjaan']  = $request->potongan_bpjs_ketenagakerjaan ? str_replace(',', '', $request->potongan_bpjs_ketenagakerjaan) : 0;
 
         if ($request->file('foto_karyawan')) {
-            if ($request->foto_karyawan_lama) {
-                Storage::delete($request->foto_karyawan_lama);
+            if ($request->foto_karyawan_lama && file_exists($_SERVER['DOCUMENT_ROOT'] . '/' . $request->foto_karyawan_lama)) {
+                unlink($_SERVER['DOCUMENT_ROOT'] . '/' . $request->foto_karyawan_lama);
             }
-            $validatedData['foto_karyawan'] = $request->file('foto_karyawan')->store('foto_karyawan');
+            $validatedData['foto_karyawan'] = $this->uploadFoto($request->file('foto_karyawan'), 'foto_karyawan');
         }
 
-        $path = public_path('neural.json');
-        $neural = File::get($path);
+        $path = $_SERVER['DOCUMENT_ROOT'] . '/neural.json';
+        $neural   = File::get($path);
         $dataface = json_decode($neural, true);
 
         foreach ($dataface as &$item) {
@@ -475,7 +406,7 @@ class karyawanController extends Controller
 
         $user->update($validatedData);
         if ($request->role) {
-            foreach($request->role as $role){
+            foreach ($request->role as $role) {
                 $user->assignRole($role);
             }
         }
@@ -488,24 +419,20 @@ class karyawanController extends Controller
     {
         $delete = User::find($id);
 
-        // Cek apakah user yang akan dihapus adalah admin
         if ($delete->hasRole('admin')) {
-            // Hitung jumlah admin lainnya
-            $totalAdmins = User::whereHas('roles', function($query) {
+            $totalAdmins = User::whereHas('roles', function ($query) {
                 $query->where('name', 'admin');
             })->count();
 
-            // Jika ini adalah admin terakhir, cegah penghapusan
             if ($totalAdmins <= 1) {
-                Alert::error('Tidak Dapat Menghapus Admin Terakhir', 'Pegawai "' . $delete->name . '" adalah admin terakhir di sistem. Sistem minimal harus memiliki satu admin untuk menjaga keamanan dan fungsionalitas sistem.');
+                Alert::error('Tidak Dapat Menghapus Admin Terakhir', 'Pegawai "' . $delete->name . '" adalah admin terakhir di sistem.');
                 return redirect('/pegawai');
             }
         }
 
-        // Cek apakah user ini menjadi manager di divisi manapun
         $isManager = Jabatan::where('manager', $id)->first();
         if ($isManager) {
-            Alert::error('Tidak Dapat Menghapus Pegawai', 'Pegawai "' . $delete->name . '" masih menjadi Manager di divisi "' . $isManager->nama_jabatan . '". Silakan ganti manager divisi tersebut terlebih dahulu sebelum menghapus pegawai ini.');
+            Alert::error('Tidak Dapat Menghapus Pegawai', 'Pegawai "' . $delete->name . '" masih menjadi Manager di divisi "' . $isManager->nama_jabatan . '".');
             return redirect('/pegawai');
         }
 
@@ -514,14 +441,19 @@ class karyawanController extends Controller
         Cuti::where('user_id', $id)->delete();
         Sip::where('user_id', $id)->delete();
         Payroll::where('user_id', $id)->delete();
-        Storage::delete($delete->foto_karyawan);
-        $path = public_path('neural.json');
-        $neural = File::get($path);
+
+        if ($delete->foto_karyawan && file_exists($_SERVER['DOCUMENT_ROOT'] . '/' . $delete->foto_karyawan)) {
+            unlink($_SERVER['DOCUMENT_ROOT'] . '/' . $delete->foto_karyawan);
+        }
+
+       $path = $_SERVER['DOCUMENT_ROOT'] . '/neural.json';
+        $neural   = File::get($path);
         $dataface = json_decode($neural, true);
 
-        $filterface = array_filter($dataface, function($item) use ($delete) {
+        $filterface = array_filter($dataface, function ($item) use ($delete) {
             return $item['label'] !== $delete->username;
         });
+
         File::put($path, json_encode(array_values($filterface), JSON_PRETTY_PRINT));
         $delete->delete();
         return redirect('/pegawai')->with('success', 'Data Berhasil di Delete');
@@ -529,12 +461,12 @@ class karyawanController extends Controller
 
     public function checkAdminCount()
     {
-        $totalAdmins = User::whereHas('roles', function($query) {
+        $totalAdmins = User::whereHas('roles', function ($query) {
             $query->where('name', 'admin');
         })->count();
 
         return response()->json([
-            'total_admins' => $totalAdmins,
+            'total_admins'     => $totalAdmins,
             'can_delete_admin' => $totalAdmins > 1
         ]);
     }
@@ -542,7 +474,7 @@ class karyawanController extends Controller
     public function editpassword($id)
     {
         return view('karyawan.editpassword', [
-            'title' => 'Edit Password',
+            'title'    => 'Edit Password',
             'karyawan' => User::find($id)
         ]);
     }
@@ -550,46 +482,57 @@ class karyawanController extends Controller
     public function face($id)
     {
         return view('karyawan.face', [
-            'title' => 'Daftar Wajah',
+            'title'    => 'Daftar Wajah',
             'karyawan' => User::find($id)
         ]);
     }
 
-    public function ajaxDescrip(Request $request)
-    {
-        $path = public_path('neural.json');
-        $neural = File::get($path);
-        $dataface = json_decode($neural, true);
-        $user = User::find($request->user_id);
+public function ajaxDescrip(Request $request)
+{
+    $path = $_SERVER['DOCUMENT_ROOT'] . '/neural.json';
+    $neural   = File::get($path);
+    $dataface = json_decode($neural, true);
+    $user     = User::find($request->user_id);
 
-        $filterface = array_filter($dataface, function($item) use ($user) {
-            return $item['label'] !== $user->username;
-        });
+    $filterface = array_filter($dataface, function ($item) use ($user) {
+        return $item['label'] !== $user->username;
+    });
 
-        File::put($path, json_encode(array_values($filterface), JSON_PRETTY_PRINT));
+    $filtered = array_values($filterface);
 
-        $json = file_get_contents('neural.json');
-        if(strlen($json) > 4){
-            $string = ',' . $request["myData"];
+    // Decode data baru dari request
+    $newData = json_decode($request["myData"], true);
+
+    if ($newData) {
+        if (is_array($newData) && isset($newData[0])) {
+            // Array of descriptors
+            foreach ($newData as $item) {
+                $filtered[] = $item;
+            }
+        } else {
+            // Single descriptor
+            $filtered[] = $newData;
         }
-        else{
-            $string = $request["myData"];
-        }
-        $position = strlen($json) - 1;
-        $out = substr_replace( $json, $string, $position, 0 );
-        file_put_contents('neural.json', $out);
     }
+
+    File::put($path, json_encode($filtered, JSON_PRETTY_PRINT));
+
+    return response()->json(['success' => true, 'count' => count($filtered)]);
+}
 
     public function ajaxPhoto(Request $request)
     {
-        $image = $request["image"];
-
+        $image       = $request["image"];
         $image_parts = explode(";base64,", $image);
-
         $image_base64 = base64_decode($image_parts[1]);
-        $fileName = 'foto_face_recognition/' . $request["path"] . '.png';
 
-        Storage::put($fileName, $image_base64);
+        $dir = $_SERVER['DOCUMENT_ROOT'] . '/uploads/foto_face_recognition';
+        if (!file_exists($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $fileName = 'uploads/foto_face_recognition/' . $request["path"] . '.png';
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/' . $fileName, $image_base64);
 
         $user = User::where('username', $request['path'])->update(["foto_face_recognition" => $fileName]);
         return $user;
@@ -602,7 +545,6 @@ class karyawanController extends Controller
         ]);
 
         $validatedData['password'] = Hash::make($request->password);
-
         User::where('id', $id)->update($validatedData);
         $request->session()->flash('success', 'Password Berhasil Diganti');
         return redirect('/pegawai');
@@ -612,32 +554,33 @@ class karyawanController extends Controller
     {
         $tanggal_mulai = request()->input('tanggal_mulai');
         $tanggal_akhir = request()->input('tanggal_akhir');
-        $per_page = request()->input('per_page', 10);
+        $per_page      = request()->input('per_page', 10);
 
         $mapping_shift = MappingShift::where('user_id', $id)
-                                    ->when($tanggal_mulai && $tanggal_akhir, function ($query) use ($tanggal_mulai, $tanggal_akhir) {
-                                        return $query->whereBetween('tanggal', [$tanggal_mulai, $tanggal_akhir]);
-                                    })
-                                    ->when($tanggal_mulai && !$tanggal_akhir, function ($query) use ($tanggal_mulai) {
-                                        return $query->where('tanggal', '>=', $tanggal_mulai);
-                                    })
-                                    ->when(!$tanggal_mulai && $tanggal_akhir, function ($query) use ($tanggal_akhir) {
-                                        return $query->where('tanggal', '<=', $tanggal_akhir);
-                                    })
-                                    ->orderBy('tanggal', 'DESC')
-                                    ->paginate($per_page)
-                                    ->withQueryString();
+                            ->when($tanggal_mulai && $tanggal_akhir, function ($query) use ($tanggal_mulai, $tanggal_akhir) {
+                                return $query->whereBetween('tanggal', [$tanggal_mulai, $tanggal_akhir]);
+                            })
+                            ->when($tanggal_mulai && !$tanggal_akhir, function ($query) use ($tanggal_mulai) {
+                                return $query->where('tanggal', '>=', $tanggal_mulai);
+                            })
+                            ->when(!$tanggal_mulai && $tanggal_akhir, function ($query) use ($tanggal_akhir) {
+                                return $query->where('tanggal', '<=', $tanggal_akhir);
+                            })
+                            ->orderBy('tanggal', 'DESC')
+                            ->paginate($per_page)
+                            ->withQueryString();
+
         return view('karyawan.mappingshift', [
-            'title' => 'Mapping Shift',
-            'karyawan' => User::find($id),
+            'title'          => 'Mapping Shift',
+            'karyawan'       => User::find($id),
             'shift_karyawan' => $mapping_shift,
-            'shift' => Shift::all()
+            'shift'          => Shift::all()
         ]);
     }
 
     public function dinasLuar($id)
     {
-        $tanggal = request()->input('tanggal');
+        $tanggal   = request()->input('tanggal');
         $dinas_luar = dinasLuar::where('user_id', $id)
                         ->when($tanggal, function ($query) use ($tanggal) {
                             return $query->where('tanggal', $tanggal);
@@ -645,100 +588,76 @@ class karyawanController extends Controller
                         ->orderBy('id', 'desc')
                         ->paginate(10)
                         ->withQueryString();
+
         return view('karyawan.dinasluar', [
-            'title' => 'Mapping Dinas Luar',
-            'karyawan' => User::find($id),
+            'title'      => 'Mapping Dinas Luar',
+            'karyawan'   => User::find($id),
             'dinas_luar' => $dinas_luar,
-            'shift' => Shift::all()
+            'shift'      => Shift::all()
         ]);
     }
 
     public function prosesTambahShift(Request $request)
     {
-        // Debug logging
         \Log::info('prosesTambahShift called', [
-            'user_id' => $request->user_id,
-            'shift_id' => $request->shift_id,
+            'user_id'       => $request->user_id,
+            'shift_id'      => $request->shift_id,
             'tanggal_mulai' => $request->tanggal_mulai,
             'tanggal_akhir' => $request->tanggal_akhir,
-            'user_roles' => auth()->user() ? auth()->user()->roles->pluck('name') : 'No user',
-            'all_data' => $request->all()
         ]);
 
         date_default_timezone_set(config('app.timezone'));
 
         $request->validate([
-            'shift_id' => 'required',
+            'shift_id'      => 'required',
             'tanggal_mulai' => 'required',
             'tanggal_akhir' => 'required',
-            'holiday_days' => 'nullable|array',
+            'holiday_days'   => 'nullable|array',
             'holiday_days.*' => 'in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
         ]);
 
-        if($request["tanggal_mulai"] == null) {
-            $request["tanggal_mulai"] = $request["tanggal_akhir"];
-        } else {
-            $request["tanggal_mulai"] = $request["tanggal_mulai"];
-        }
+        $request["tanggal_mulai"] = $request["tanggal_mulai"] ?? $request["tanggal_akhir"];
+        $request["tanggal_akhir"] = $request["tanggal_akhir"] ?? $request["tanggal_mulai"];
 
-        if($request["tanggal_akhir"] == null) {
-            $request["tanggal_akhir"] = $request["tanggal_mulai"];
-        } else {
-            $request["tanggal_akhir"] = $request["tanggal_akhir"];
-        }
+        $begin    = new \DateTime($request["tanggal_mulai"]);
+        $end      = new \DateTime($request["tanggal_akhir"]);
+        $end      = $end->modify('+1 day');
+        $interval = new \DateInterval('P1D');
+        $daterange = new \DatePeriod($begin, $interval, $end);
 
-        $begin = new \DateTime($request["tanggal_mulai"]);
-        $end = new \DateTime($request["tanggal_akhir"]);
-        $end = $end->modify('+1 day');
-
-        $interval = new \DateInterval('P1D'); //referensi : https://en.wikipedia.org/wiki/ISO_8601#Durations
-        $daterange = new \DatePeriod($begin, $interval ,$end);
-
-
-        // Get holiday shift (Libur)
-        $holidayShift = \App\Models\Shift::whereRaw('LOWER(nama_shift) = ?', ['libur'])->first();
+        $holidayShift   = \App\Models\Shift::whereRaw('LOWER(nama_shift) = ?', ['libur'])->first();
         $holidayShiftId = $holidayShift ? $holidayShift->id : null;
 
         foreach ($daterange as $date) {
-            $tanggal = $date->format("Y-m-d");
-
-            // Check if this day is marked as holiday
+            $tanggal      = $date->format("Y-m-d");
             $holiday_days = $request->input('holiday_days', []);
-            $day_name = $date->format('l'); // Get full day name (Monday, Tuesday, etc.)
+            $day_name     = $date->format('l');
 
-            // Use holiday shift for holiday days, otherwise use the selected shift
-            $currentShiftId = in_array($day_name, $holiday_days) ? $holidayShiftId : $request->shift_id;
+            $currentShiftId    = in_array($day_name, $holiday_days) ? $holidayShiftId : $request->shift_id;
             $currentLockLocation = $request->lock_location;
 
-            // Skip if no valid shift (neither regular nor holiday)
-            if (!$currentShiftId) {
-                continue;
-            }
+            if (!$currentShiftId) continue;
 
             $cek = MappingShift::where('user_id', $request['user_id'])->where('tanggal', $tanggal)->first();
 
             if (!$cek) {
-                // Get shift details to determine status_absen
                 $shift = \App\Models\Shift::find($currentShiftId);
-                if (!$shift) {
-                    continue;
-                }
+                if (!$shift) continue;
 
                 $statusAbsen = strtolower($shift->nama_shift) === 'libur' ? "Libur" : "Tidak Masuk";
 
-                $validatedData = [
-                    'user_id' => $request['user_id'],
-                    'shift_id' => $currentShiftId,
-                    'tanggal' => $tanggal,
-                    'status_absen' => $statusAbsen,
-                    'lock_location' => $currentLockLocation ? $currentLockLocation : null,
-                    'telat' => 0,
-                    'pulang_cepat' => 0,
-                ];
-
-                MappingShift::create($validatedData);
+                MappingShift::create([
+                    'user_id'       => $request['user_id'],
+                    'shift_id'      => $currentShiftId,
+                    'tanggal'       => $tanggal,
+                    'status_absen'  => $statusAbsen,
+                    'lock_location' => $currentLockLocation ?: null,
+                    'telat'         => 0,
+                    'pulang_cepat'  => 0,
+                ]);
             }
         }
+
         return redirect('/pegawai/shift/' . $request["user_id"])->with('success', 'Data Berhasil di Tambahkan');
     }
 
@@ -747,11 +666,11 @@ class karyawanController extends Controller
         date_default_timezone_set(config('app.timezone'));
 
         $request->validate([
-            'user_id' => 'required|integer|exists:users,id',
+            'user_id'     => 'required|integer|exists:users,id',
             'shifts_data' => 'required|json',
         ]);
 
-        $userId = $request->user_id;
+        $userId     = $request->user_id;
         $shiftsData = json_decode($request->shifts_data, true);
 
         if (!$shiftsData || !is_array($shiftsData)) {
@@ -761,41 +680,29 @@ class karyawanController extends Controller
         $createdCount = 0;
 
         foreach ($shiftsData as $date => $shiftInfo) {
-            // Validate date format
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-                continue;
-            }
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) continue;
 
-            $shiftId = $shiftInfo['shift_id'] ?? null;
+            $shiftId      = $shiftInfo['shift_id'] ?? null;
             $lockLocation = $shiftInfo['lock_location'] ?? 0;
 
-            if (!$shiftId) {
-                continue;
-            }
+            if (!$shiftId) continue;
 
-            // Check if mapping already exists for this date and user
-            $existingMapping = MappingShift::where('user_id', $userId)
-                ->where('tanggal', $date)
-                ->first();
+            $existingMapping = MappingShift::where('user_id', $userId)->where('tanggal', $date)->first();
 
             if (!$existingMapping) {
-                // Get shift details
                 $shift = \App\Models\Shift::find($shiftId);
-                if (!$shift) {
-                    continue;
-                }
+                if (!$shift) continue;
 
-                // Determine status_absen based on shift
                 $statusAbsen = $shiftId == 1 ? "Libur" : "Tidak Masuk";
 
                 MappingShift::create([
-                    'user_id' => $userId,
-                    'shift_id' => $shiftId,
-                    'tanggal' => $date,
-                    'status_absen' => $statusAbsen,
+                    'user_id'       => $userId,
+                    'shift_id'      => $shiftId,
+                    'tanggal'       => $date,
+                    'status_absen'  => $statusAbsen,
                     'lock_location' => $lockLocation,
-                    'telat' => 0,
-                    'pulang_cepat' => 0,
+                    'telat'         => 0,
+                    'pulang_cepat'  => 0,
                 ]);
 
                 $createdCount++;
@@ -803,7 +710,7 @@ class karyawanController extends Controller
         }
 
         return response()->json([
-            'message' => "Berhasil menjadwalkan {$createdCount} shift",
+            'message'       => "Berhasil menjadwalkan {$createdCount} shift",
             'created_count' => $createdCount
         ]);
     }
@@ -812,78 +719,58 @@ class karyawanController extends Controller
     {
         date_default_timezone_set(config('app.timezone'));
 
-        if($request["tanggal_mulai"] == null) {
-            $request["tanggal_mulai"] = $request["tanggal_akhir"];
-        } else {
-            $request["tanggal_mulai"] = $request["tanggal_mulai"];
-        }
+        $request["tanggal_mulai"] = $request["tanggal_mulai"] ?? $request["tanggal_akhir"];
+        $request["tanggal_akhir"] = $request["tanggal_akhir"] ?? $request["tanggal_mulai"];
 
-        if($request["tanggal_akhir"] == null) {
-            $request["tanggal_akhir"] = $request["tanggal_mulai"];
-        } else {
-            $request["tanggal_akhir"] = $request["tanggal_akhir"];
-        }
-
-        $begin = new \DateTime($request["tanggal_mulai"]);
-        $end = new \DateTime($request["tanggal_akhir"]);
-        $end = $end->modify('+1 day');
-
-        $interval = new \DateInterval('P1D'); //referensi : https://en.wikipedia.org/wiki/ISO_8601#Durations
-        $daterange = new \DatePeriod($begin, $interval ,$end);
-
+        $begin     = new \DateTime($request["tanggal_mulai"]);
+        $end       = new \DateTime($request["tanggal_akhir"]);
+        $end       = $end->modify('+1 day');
+        $interval  = new \DateInterval('P1D');
+        $daterange = new \DatePeriod($begin, $interval, $end);
 
         foreach ($daterange as $date) {
             $tanggal = $date->format("Y-m-d");
-
-            if ($request["shift_id"] == 1) {
-                $request["status_absen"] = "Libur";
-            } else {
-                $request["status_absen"] = "Tidak Masuk";
-            }
-
-            $request["tanggal"] = $tanggal;
+            $request["status_absen"] = $request["shift_id"] == 1 ? "Libur" : "Tidak Masuk";
+            $request["tanggal"]      = $tanggal;
 
             $validatedData = $request->validate([
-                'user_id' => 'required',
-                'shift_id' => 'required',
-                'tanggal' => 'required',
+                'user_id'      => 'required',
+                'shift_id'     => 'required',
+                'tanggal'      => 'required',
                 'status_absen' => 'required',
             ]);
 
             dinasLuar::create($validatedData);
         }
+
         return redirect('/pegawai/dinas-luar/' . $request["user_id"])->with('success', 'Data Berhasil di Tambahkan');
     }
 
     public function deleteShift(Request $request, $id)
     {
-        $delete = MappingShift::find($id);
-        $delete->delete();
+        MappingShift::find($id)->delete();
         return redirect('/pegawai/shift/' . $request["user_id"])->with('success', 'Data Berhasil di Delete');
     }
 
     public function bulkDeleteShift(Request $request)
     {
         $validated = $request->validate([
-            'ids' => 'required|array|min:1',
-            'ids.*' => 'integer|exists:mapping_shifts,id',
+            'ids'     => 'required|array|min:1',
+            'ids.*'   => 'integer|exists:mapping_shifts,id',
             'user_id' => 'required|integer',
         ]);
 
-        MappingShift::whereIn('id', $validated['ids'])
-            ->where('user_id', $validated['user_id'])
-            ->delete();
-
+        MappingShift::whereIn('id', $validated['ids'])->where('user_id', $validated['user_id'])->delete();
         return redirect('/pegawai/shift/' . $validated['user_id'])->with('success', 'Data Berhasil di Hapus');
     }
 
     public function bulkUpdateShift(Request $request)
     {
         $validated = $request->validate([
-            'ids' => 'required|array|min:1',
-            'ids.*' => 'integer|exists:mapping_shifts,id',
-            'user_id' => 'required|integer',
-            'shift_id' => 'required|integer|exists:shifts,id',
+            'ids'           => 'required|array|min:1',
+            'ids.*'         => 'integer|exists:mapping_shifts,id',
+            'user_id'       => 'required|integer',
+            'shift_id'      => 'required|integer|exists:shifts,id',
             'lock_location' => 'nullable|in:1',
         ]);
 
@@ -892,8 +779,8 @@ class karyawanController extends Controller
         MappingShift::whereIn('id', $validated['ids'])
             ->where('user_id', $validated['user_id'])
             ->update([
-                'shift_id' => $validated['shift_id'],
-                'status_absen' => $statusAbsen,
+                'shift_id'      => $validated['shift_id'],
+                'status_absen'  => $statusAbsen,
                 'lock_location' => $request->boolean('lock_location') ? 1 : null,
             ]);
 
@@ -902,48 +789,40 @@ class karyawanController extends Controller
 
     public function deleteDinas(Request $request, $id)
     {
-        $delete = dinasLuar::find($id);
-        $delete->delete();
+        dinasLuar::find($id)->delete();
         return redirect('/pegawai/dinas-luar/' . $request["user_id"])->with('success', 'Data Berhasil di Delete');
     }
 
     public function editShift($id)
     {
         return view('karyawan.editshift', [
-            'title' => 'Edit Shift',
+            'title'          => 'Edit Shift',
             'shift_karyawan' => MappingShift::find($id),
-            'shift' => Shift::all()
+            'shift'          => Shift::all()
         ]);
     }
 
     public function editDinas($id)
     {
         return view('karyawan.editdinas', [
-            'title' => 'Edit Dinas',
+            'title'      => 'Edit Dinas',
             'dinas_luar' => dinasLuar::find($id),
-            'shift' => Shift::all()
+            'shift'      => Shift::all()
         ]);
     }
 
     public function prosesEditShift(Request $request, $id)
     {
         date_default_timezone_set(config('app.timezone'));
-
-
-        if ($request["shift_id"] == 1) {
-            $request["status_absen"] = "Libur";
-        } else {
-            $request["status_absen"] = "Tidak Masuk";
-        }
+        $request["status_absen"] = $request["shift_id"] == 1 ? "Libur" : "Tidak Masuk";
 
         $validatedData = $request->validate([
-            'shift_id' => 'required',
-            'tanggal' => 'required',
+            'shift_id'     => 'required',
+            'tanggal'      => 'required',
             'status_absen' => 'required'
         ]);
 
-        $validatedData['lock_location'] = $request['lock_location'] ? $request['lock_location'] : null;
-
+        $validatedData['lock_location'] = $request['lock_location'] ?: null;
         MappingShift::where('id', $id)->update($validatedData);
         return redirect('/pegawai/shift/' . $request["user_id"])->with('success', 'Data Berhasil di Update');
     }
@@ -951,17 +830,11 @@ class karyawanController extends Controller
     public function prosesEditDinas(Request $request, $id)
     {
         date_default_timezone_set(config('app.timezone'));
-
-
-        if ($request["shift_id"] == 1) {
-            $request["status_absen"] = "Libur";
-        } else {
-            $request["status_absen"] = "Tidak Masuk";
-        }
+        $request["status_absen"] = $request["shift_id"] == 1 ? "Libur" : "Tidak Masuk";
 
         $validatedData = $request->validate([
-            'shift_id' => 'required',
-            'tanggal' => 'required',
+            'shift_id'     => 'required',
+            'tanggal'      => 'required',
             'status_absen' => 'required'
         ]);
 
@@ -969,51 +842,51 @@ class karyawanController extends Controller
         return redirect('/pegawai/dinas-luar/' . $request["user_id"])->with('success', 'Data Berhasil di Update');
     }
 
-    public function myProfile()
-    {
-        if ($this->hasAdminAccess() && auth()->user()->is_admin == 'admin') {
-            return view('karyawan.myprofile', [
-                'title' => 'My Profile',
-                'data_jabatan' => Jabatan::all(),
-                "data_lokasi" => Lokasi::where('status', 'approved')->get()
-            ]);
-
-        } else {
-            return view('karyawan.myprofileuser', [
-                'title' => 'My Profile',
-                'data_jabatan' => Jabatan::all(),
-                "data_lokasi" => Lokasi::where('status', 'approved')->get(),
-                'kontraks' => \App\Models\Kontrak::where('user_id', auth()->user()->id)
-                                ->orderBy('tanggal', 'desc')
-                                ->get(),
-                'payrolls' => \App\Models\Payroll::where('user_id', auth()->user()->id)
+            public function myProfile()
+            {
+                $user_id  = auth()->user()->id;
+                $kontraks = \App\Models\Kontrak::where('user_id', $user_id)
+                                ->orderBy('tanggal', 'DESC')
+                                ->get();
+                $payrolls = \App\Models\Payroll::where('user_id', $user_id)
                                 ->orderBy('tahun', 'DESC')
                                 ->orderBy('bulan', 'DESC')
-                                ->get(),
-            ]);
-        }
-    }
+                                ->get();
+            
+                $viewData = [
+                    'title'        => 'My Profile',
+                    'data_jabatan' => Jabatan::all(),
+                    'data_lokasi'  => Lokasi::where('status', 'approved')->get(),
+                    'kontraks'     => $kontraks,
+                    'payrolls'     => $payrolls,
+                ];
+            
+                if ($this->hasAdminAccess() && auth()->user()->is_admin == 'admin') {
+                    return view('karyawan.myprofile', $viewData);
+                } else {
+                    return view('karyawan.myprofileuser', $viewData);
+                }
+            }
 
     public function myProfileUpdate(Request $request, $id)
     {
         $rules = [
-            'name' => 'required|max:255',
-            'telepon' => 'required',
+            'name'          => 'required|max:255',
+            'telepon'       => 'required',
             'foto_karyawan' => 'image|file|max:10240',
-            'tgl_lahir' => 'required',
-            'gender' => 'required',
-            'status_nikah' => 'required',
-            'ktp' => 'nullable',
-            'kartu_keluarga' => 'nullable',
-            'bpjs_kesehatan' => 'nullable',
+            'tgl_lahir'     => 'required',
+            'gender'        => 'required',
+            'status_nikah'  => 'required',
+            'ktp'           => 'nullable',
+            'kartu_keluarga'=> 'nullable',
+            'bpjs_kesehatan'=> 'nullable',
             'bpjs_ketenagakerjaan' => 'nullable',
-            'npwp' => 'nullable',
-            'sim' => 'nullable',
-            'rekening' => 'nullable',
+            'npwp'          => 'nullable',
+            'sim'           => 'nullable',
+            'rekening'      => 'nullable',
             'nama_rekening' => 'nullable',
-            'alamat' => 'nullable',
+            'alamat'        => 'nullable',
         ];
-
 
         $userId = User::find($id);
 
@@ -1028,14 +901,14 @@ class karyawanController extends Controller
         $validatedData = $request->validate($rules);
 
         if ($request->file('foto_karyawan')) {
-            if ($request->foto_karyawan_lama) {
-                Storage::delete($request->foto_karyawan_lama);
+            if ($request->foto_karyawan_lama && file_exists($_SERVER['DOCUMENT_ROOT'] . '/' . $request->foto_karyawan_lama)) {
+                unlink($_SERVER['DOCUMENT_ROOT'] . '/' . $request->foto_karyawan_lama);
             }
-            $validatedData['foto_karyawan'] = $request->file('foto_karyawan')->store('foto_karyawan');
+            $validatedData['foto_karyawan'] = $this->uploadFoto($request->file('foto_karyawan'), 'foto_karyawan');
         }
 
-        $path = public_path('neural.json');
-        $neural = File::get($path);
+        $path = $_SERVER['DOCUMENT_ROOT'] . '/neural.json';
+        $neural   = File::get($path);
         $dataface = json_decode($neural, true);
 
         foreach ($dataface as &$item) {
@@ -1043,8 +916,8 @@ class karyawanController extends Controller
                 $item['label'] = $request->username;
             }
         }
-        File::put($path, json_encode($dataface, JSON_PRETTY_PRINT));
 
+        File::put($path, json_encode($dataface, JSON_PRETTY_PRINT));
         User::where('id', $id)->update($validatedData);
         $request->session()->flash('success', 'Data Berhasil di Update');
         return redirect('/my-profile');
@@ -1053,15 +926,10 @@ class karyawanController extends Controller
     public function editPassMyProfile()
     {
         if ($this->hasAdminAccess() && auth()->user()->is_admin == 'admin') {
-            return view('karyawan.editpassmyprofile', [
-                'title' => 'Ganti Password'
-            ]);
+            return view('karyawan.editpassmyprofile', ['title' => 'Ganti Password']);
         } else {
-            return view('karyawan.editpassworduser', [
-                'title' => 'Ganti Password'
-            ]);
+            return view('karyawan.editpassworduser', ['title' => 'Ganti Password']);
         }
-
     }
 
     public function editPassMyProfileProses(Request $request, $id)
@@ -1071,7 +939,6 @@ class karyawanController extends Controller
         ]);
 
         $validatedData['password'] = Hash::make($request->password);
-
         User::where('id', $id)->update($validatedData);
         $request->session()->flash('success', 'Password Berhasil di Update');
         return redirect('/dashboard');
@@ -1080,22 +947,22 @@ class karyawanController extends Controller
     public function resetCuti()
     {
         return view('karyawan.masterreset', [
-            'title' => 'Master Data Reset Cuti',
-            'data_cuti' => ResetCuti::first()
+            'title'      => 'Master Data Reset Cuti',
+            'data_cuti'  => ResetCuti::first()
         ]);
     }
 
     public function resetCutiProses(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'izin_cuti' => 'required',
-            'izin_dinas_luar' => 'required',
-            'izin_sakit' => 'required',
-            'izin_cek_kesehatan' => 'required',
+            'izin_cuti'              => 'required',
+            'izin_dinas_luar'        => 'required',
+            'izin_sakit'             => 'required',
+            'izin_cek_kesehatan'     => 'required',
             'izin_keperluan_pribadi' => 'required',
-            'izin_lainnya' => 'required',
-            'izin_telat' => 'required',
-            'izin_pulang_cepat' => 'required'
+            'izin_lainnya'           => 'required',
+            'izin_telat'             => 'required',
+            'izin_pulang_cepat'      => 'required'
         ]);
 
         ResetCuti::where('id', $id)->update($validatedData);
@@ -1104,39 +971,28 @@ class karyawanController extends Controller
 
     public function switchUser()
     {
-        $user = User::find(auth()->user()->id);
-        
-        // All users can switch to user dashboard (no restriction needed)
-        $user->update([
-            'is_admin' => 'user'
-        ]);
-
+        User::find(auth()->user()->id)->update(['is_admin' => 'user']);
         return redirect('/dashboard')->with('success', 'Berhasil Pindah Dashboard User');
     }
 
     public function switchAdmin()
     {
-        $user = User::find(auth()->user()->id);
-        
-        // Allow switching to admin if user has any admin-level roles
-        $adminRoles = ['admin', 'hrd', 'kepala_cabang', 'general_manager', 'finance', 'regional_manager'];
+        $user        = User::find(auth()->user()->id);
+        $adminRoles  = ['admin', 'hrd', 'kepala_cabang', 'general_manager', 'finance', 'regional_manager'];
         $hasAdminAccess = false;
-        
+
         foreach ($adminRoles as $role) {
             if ($user->hasRole($role)) {
                 $hasAdminAccess = true;
                 break;
             }
         }
-        
+
         if (!$hasAdminAccess) {
             return redirect('/dashboard')->with('error', 'Anda tidak memiliki akses untuk beralih ke Dashboard Admin');
         }
-        
-        $user->update([
-            'is_admin' => 'admin'
-        ]);
 
+        $user->update(['is_admin' => 'admin']);
         return redirect('/dashboard')->with('success', 'Berhasil Pindah Dashboard Admin');
     }
 }

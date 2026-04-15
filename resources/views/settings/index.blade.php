@@ -81,7 +81,7 @@
                         </div>
                         <div class="form-group">
                             <label for="logo" class="form-label">Logo</label>
-                            <img src="{{ asset('/storage/'.$data->logo) }}" alt="" style="width: 20px">
+                            <img src="{{ asset($data->logo) }}" alt="" style="width: 20px">
                             <input class="form-control @error('logo') is-invalid @enderror" type="file" id="logo" name="logo">
                             @error('logo')
                             <div class="invalid-feedback">

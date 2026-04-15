@@ -512,6 +512,7 @@ Route::post('/budgeting/update/{id}', [App\Http\Controllers\BudgetingController:
 Route::post('/budgeting/approval/{id}', [App\Http\Controllers\BudgetingController::class, 'approval']);
 Route::get('/budgeting/delete/{id}', [App\Http\Controllers\BudgetingController::class, 'delete']);
 Route::post('/budgeting/getKategori', [App\Http\Controllers\BudgetingController::class, 'getKategori']);
+Route::get('/budgeting/show/{id}', [BudgetingController::class, 'show']);
 
 // Project
 Route::get('/project', [App\Http\Controllers\ProjectController::class, 'index']);
@@ -522,6 +523,28 @@ Route::get('/project/edit/{id}', [App\Http\Controllers\ProjectController::class,
 Route::post('/project/update/{id}', [App\Http\Controllers\ProjectController::class, 'update']);
 Route::get('/project/delete/{id}', [App\Http\Controllers\ProjectController::class, 'delete']);
 Route::get('/project/getProjects', [App\Http\Controllers\ProjectController::class, 'getProjects']);
+
+//ini aku tambah untuk debug face recognition
+// routes/web.php - tambah sementara
+Route::post('/test-descrip', function(\Illuminate\Http\Request $request) {
+    try {
+        $path = public_path('neural.json');
+        return response()->json([
+            'path'       => $path,
+            'exists'     => file_exists($path),
+            'writable'   => is_writable($path),
+            'content'    => file_exists($path) ? file_get_contents($path) : 'FILE NOT FOUND',
+            'doc_root'   => $_SERVER['DOCUMENT_ROOT'],
+            'public_path'=> public_path(),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()]);
+    }
+});
+
+//routes untuk realtime
+Route::get('/dashboard/realtime-stats', [dashboardController::class, 'realtimeStats'])->name('dashboard.realtime');
+
 
 Route::get('/reset', function () {
     Artisan::call('optimize');

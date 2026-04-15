@@ -12,8 +12,8 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>{{ $title }}</title>
         <!-- Favicon and Touch Icons  -->
-        <link rel="shortcut icon" href="{{ url('/storage/'.$settings->logo) }}" />
-        <link rel="apple-touch-icon-precomposed" href="{{ url('/storage/'.$settings->logo) }}" />
+            <link rel="shortcut icon" href="{{ asset($settings->logo) }}" />
+            <link rel="apple-touch-icon-precomposed" href="{{ asset($settings->logo) }}" />
         <!-- Font -->
         <link rel="stylesheet" href="{{ url('/myhr/fonts/fonts.css') }}" />
         <!-- Icons -->
@@ -65,7 +65,7 @@
             </div>
         </div>
         <!-- /preload -->
-        <div class="header-style2" style="background: url({{ url('/storage/'.$berita->berita_file_path) }});">
+            <div class="header-style2" style="background: url({{ asset($berita->berita_file_path) }});">
             <div class="tf-container">
                 <a href="#" class="back-btn"> <i class="icon-left"></i> </a>
             </div>

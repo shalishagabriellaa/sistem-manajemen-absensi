@@ -9,7 +9,8 @@ class Budgeting extends Model
 
         protected $fillable = [
     'project_id', 'user_id', 'kategori_id', 'tanggal', 'event',
-    'status', 'jumlah', 'qty', 'total', 'sisa', 'file_path', 'file_name',
+    'status', 'jumlah', 'qty', 'total', 'jumlah_disetujui',
+    'alasan', 'sisa', 'file_path', 'file_name',
 ];
 
 

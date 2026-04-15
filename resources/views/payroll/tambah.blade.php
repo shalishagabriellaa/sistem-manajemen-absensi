@@ -94,13 +94,6 @@
                         </div>
                     </div>
 
-                    {{-- Info pegawai otomatis (readonly, untuk referensi) --}}
-                    <div class="form-row" id="info-pegawai-wrap" style="display:none!important">
-                        <div class="col-md-12">
-                            <div class="alert alert-info py-2 px-3 mb-3" id="info-pegawai-box" style="font-size:13px;"></div>
-                        </div>
-                    </div>
-
                     {{-- ===== PENDAPATAN ===== --}}
                     <h5 class="mt-4 mb-3 text-success border-bottom pb-2">Pendapatan / Penjumlahan</h5>
                     <div class="form-row">
@@ -196,7 +189,6 @@
                             <input type="text" name="bonus_team" id="bonus_team" class="form-control money" value="{{ old('bonus_team', '0') }}">
                         </div>
                     </div>
-                    {{-- bonus_jackpot hidden (tetap dikirim sebagai 0 agar kompatibel dengan DB) --}}
                     <input type="hidden" name="bonus_jackpot" value="0">
 
                     <div class="form-row">
@@ -217,7 +209,7 @@
                     <div class="form-row">
                         <div class="col-md-6 mb-3">
                             <label class="font-weight-bold text-success">Total Penjumlahan (Otomatis)</label>
-                            <input type="text" id="total_penjumlahan" class="form-control money font-weight-bold" value="{{ old('total_penjumlahan', '0') }}" readonly style="background:#e8f5e9;">
+                            <input type="text" name="total_penjumlahan" id="total_penjumlahan" class="form-control money font-weight-bold" value="{{ old('total_penjumlahan', '0') }}" readonly style="background:#e8f5e9;">
                         </div>
                     </div>
 
@@ -300,11 +292,11 @@
                     <div class="form-row">
                         <div class="col-md-6 mb-3">
                             <label class="font-weight-bold text-danger">Total Pengurangan (Otomatis)</label>
-                            <input type="text" id="total_pengurangan" class="form-control money font-weight-bold" value="{{ old('total_pengurangan', '0') }}" readonly style="background:#ffebee;">
+                            <input type="text" name="total_pengurangan" id="total_pengurangan" class="form-control money font-weight-bold" value="{{ old('total_pengurangan', '0') }}" readonly style="background:#ffebee;">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="font-weight-bold" style="font-size:1.1rem;">GRAND TOTAL GAJI DITERIMA</label>
-                            <input type="text" id="grand_total" class="form-control money font-weight-bold" value="{{ old('grand_total', '0') }}" readonly style="background:#fff3e0; font-size:1.1rem; border:2px solid #ff9800;">
+                            <input type="text" name="grand_total" id="grand_total" class="form-control money font-weight-bold" value="{{ old('grand_total', '0') }}" readonly style="background:#fff3e0; font-size:1.1rem; border:2px solid #ff9800;">
                         </div>
                     </div>
 
@@ -330,20 +322,14 @@ $(document).ready(function(){
     // Flag agar hitung() tidak memanggil dirinya sendiri saat set nilai readonly
     var isCalculating = false;
 
-    // Ambil nilai numerik dari field (hapus koma mask)
+    // Ambil nilai numerik dari field — hapus SEMUA non-digit (titik, koma, spasi, dll)
     function getVal(sel) {
-        return parseInt($(sel).val().replace(/,/g, '')) || 0;
+        return parseInt($(sel).val().replace(/\D/g, '')) || 0;
     }
 
-    // Set nilai ke field readonly (tanpa trigger agar tidak loop)
-    function setReadonly(id, val) {
-        // Gunakan jquery.mask setVal jika tersedia, fallback ke val()
-        var $el = $(id);
-        $el.val(val);
-        // Paksa mask memformat ulang nilai
-        if (typeof $el.data('mask') !== 'undefined') {
-            $el.trigger('blur');
-        }
+    // Format angka ke string dengan titik sebagai pemisah ribuan (konsisten dengan mask)
+    function formatRupiah(n) {
+        return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
     // Hitung semua total — dipanggil setiap kali ada perubahan input
@@ -375,10 +361,9 @@ $(document).ready(function(){
 
         var grandTotal = Math.max(0, penjumlahan - pengurangan);
 
-        // Set langsung ke field readonly — TANPA .trigger('input')
-        $('#total_penjumlahan').val(penjumlahan.toLocaleString('id-ID'));
-        $('#total_pengurangan').val(pengurangan.toLocaleString('id-ID'));
-        $('#grand_total').val(grandTotal.toLocaleString('id-ID'));
+        $('#total_penjumlahan').val(formatRupiah(penjumlahan));
+        $('#total_pengurangan').val(formatRupiah(pengurangan));
+        $('#grand_total').val(formatRupiah(grandTotal));
 
         isCalculating = false;
     }
@@ -388,8 +373,7 @@ $(document).ready(function(){
         var jml  = parseInt($(jumlahSel).val()) || 0;
         var uang = getVal(uangSel);
         var total = jml * uang;
-        // Set ke field readonly subtotal tanpa trigger
-        $(totalSel).val(total.toLocaleString('id-ID'));
+        $(totalSel).val(formatRupiah(total));
         hitung();
     }
 
@@ -409,7 +393,6 @@ $(document).ready(function(){
     bindSubtotal('[name=jumlah_thr]',                 '[name=uang_thr]',                 '[name=total_thr]');
 
     // Trigger hitung saat field money yang BUKAN readonly berubah
-    // (exclude field readonly agar tidak loop)
     $(document).on('input keyup', '.money:not([readonly])', function(){
         hitung();
     });
@@ -422,7 +405,6 @@ $(document).ready(function(){
         $.get('/payroll/get-user-data/' + userId, function(res){
             if (!res) return;
 
-            // Set field langsung dengan nilai integer (mask akan format saat blur)
             var fields = {
                 '[name=gaji_pokok]':                           res.gaji_pokok || 0,
                 '[name=uang_tunjangan_transport]':             res.tunjangan_transport || 0,
@@ -442,10 +424,13 @@ $(document).ready(function(){
                 '[name=saldo_kasbon]':                         res.saldo_kasbon || 0,
             };
 
+            // Ganti bagian $.each di AJAX user_id change
             $.each(fields, function(sel, val){
-                $(sel).val(val).trigger('blur'); // blur agar mask format ulang
+                var angka = parseInt(val) || 0;
+                // Format pakai titik ribuan agar mask baca dengan benar
+                var formatted = angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                $(sel).val(formatted);
             });
-
             hitung();
         });
     });

@@ -210,50 +210,46 @@ class InventoryController extends Controller
     }
 
     public function downloadTemplate()
-    {
-        $filePath = '/mnt/user-data/uploads/inventory_metech_template.xlsx';
+{
+    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle('Inventory');
 
-        if (file_exists($filePath)) {
-            return response()->download(
-                $filePath,
-                'inventory_metech_template.xlsx',
-                ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
-            );
-        }
+    $sheet->setCellValue('A1', 'Inventory Metech');
+    $sheet->mergeCells('A1:I1');
+    $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+    $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Inventory');
+    $sheet->setCellValue('A2', 'Isi data mulai dari baris ke-4');
+    $sheet->mergeCells('A2:I2');
+    $sheet->getStyle('A2')->getFont()->setItalic(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF888888'));
+    $sheet->getStyle('A2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
-        $sheet->setCellValue('A1', 'Inventory Metech');
-        $sheet->mergeCells('A1:I1');
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $headers = ['Kode Barang', 'Jenis Barang', 'Merek', 'Nama Barang', 'Stok', 'UoM', 'Description', 'Lokasi', 'Divisi / Jabatan'];
+    $cols    = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
 
-        $headers = ['Kode Barang', 'Jenis Barang', 'Merek', 'Nama Barang', 'Stok', 'UoM', 'Description', 'Lokasi', 'Divisi / Jabatan'];
-        $cols    = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
-
-        foreach ($headers as $i => $header) {
-            $sheet->setCellValue($cols[$i] . '3', $header);
-        }
-
-        $sheet->getStyle('A3:I3')->applyFromArray([
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '2563EB']],
-            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
-        ]);
-
-        foreach ($cols as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-
-        return response()->stream(function () use ($writer) {
-            $writer->save('php://output');
-        }, 200, [
-            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="inventory_metech_template.xlsx"',
-        ]);
+    foreach ($headers as $i => $header) {
+        $sheet->setCellValue($cols[$i] . '3', $header);
     }
+
+    $sheet->getStyle('A3:I3')->applyFromArray([
+        'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+        'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '2563EB']],
+        'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+    ]);
+
+    foreach ($cols as $col) {
+        $sheet->getColumnDimension($col)->setAutoSize(true);
+    }
+
+    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+
+    return response()->stream(function () use ($writer) {
+        $writer->save('php://output');
+    }, 200, [
+        'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition' => 'attachment; filename="inventory_metech_template.xlsx"',
+        'Cache-Control'       => 'max-age=0',
+    ]);
+}
 }   

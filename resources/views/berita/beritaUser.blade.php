@@ -9,7 +9,7 @@
                             <a href="{{ url('/berita-user/show/'.$ber->id) }}" style="text-decoration: none; color: inherit; display: block;">
                                 <div class="food-box">
                                     <div class="img-box">
-                                        <img src="{{ url('/storage/'.$ber->berita_file_path) }}" class="img-fluid w-100" style="height: 200px; object-fit: cover;">
+                                        <img src="{{ asset($ber->berita_file_path) }}" class="img-fluid w-100" style="height: 200px; object-fit: cover;">
                                     </div>
                                     <div class="content">
                                         <h4>{{ $ber->judul }}</h4>

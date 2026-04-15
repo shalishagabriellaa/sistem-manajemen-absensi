@@ -18,32 +18,25 @@
                 <form method="post" class="p-4" action="{{ url('/berita/update/'.$berita->id) }}" enctype="multipart/form-data">
                     @method('PUT')
                     @csrf
+
                         <div class="form-group">
                             @php
                                 $tipe = array(
-                                    [
-                                        "tipe" => "Berita",
-                                    ],
-                                    [
-                                        "tipe" => "Informasi",
-                                    ],
+                                    ["tipe" => "Berita"],
+                                    ["tipe" => "Informasi"],
                                 );
                             @endphp
                             <label for="tipe" class="float-left">Tipe</label>
                             <select name="tipe" id="tipe" class="form-control selectpicker" data-live-search="true">
-                                <option value=""selected>-- Pilih Tipe --</option>
+                                <option value="" selected>-- Pilih Tipe --</option>
                                 @foreach($tipe as $tip)
-                                    @if(request('tipe', $berita->tipe) == $tip['tipe'])
-                                        <option value="{{ $tip['tipe'] }}"selected>{{ $tip['tipe'] }}</option>
-                                    @else
-                                        <option value="{{ $tip['tipe'] }}">{{ $tip['tipe'] }}</option>
-                                    @endif
+                                    <option value="{{ $tip['tipe'] }}" {{ request('tipe', $berita->tipe) == $tip['tipe'] ? 'selected' : '' }}>
+                                        {{ $tip['tipe'] }}
+                                    </option>
                                 @endforeach
                             </select>
                             @error('tipe')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -51,9 +44,7 @@
                             <label for="judul" class="float-left">Judul</label>
                             <input type="text" class="form-control @error('judul') is-invalid @enderror" id="judul" name="judul" autofocus value="{{ old('judul', $berita->judul) }}">
                             @error('judul')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -65,17 +56,24 @@
 
                         <div class="form-group">
                             <label for="berita_file_path" class="float-left">Gambar</label>
-                            <input type="file" class="form-control @error('berita_file_path') is-invalid @enderror" id="berita_file_path" name="berita_file_path" autofocus value="{{ old('berita_file_path') }}">
+
+                            @if($berita->berita_file_path)
+                                <div class="mb-2">
+                                    <small class="text-muted">Gambar saat ini:</small><br>
+                                    <img src="{{ asset($berita->berita_file_path) }}" style="width: 200px; border-radius: 8px; margin-top: 5px;">
+                                </div>
+                            @endif
+
+                            <input type="file" class="form-control @error('berita_file_path') is-invalid @enderror" id="berita_file_path" name="berita_file_path">
+                            <small class="text-muted">Kosongkan jika tidak ingin mengganti gambar</small>
                             @error('berita_file_path')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
+                                <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
                     <button type="submit" class="btn btn-primary float-right">Submit</button>
                 </form>
             </div>
         </div>
     </div>
-
 @endsection

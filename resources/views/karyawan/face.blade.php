@@ -188,6 +188,11 @@
 <script src="{{ url('/face/dist/face-api.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+ // DEBUG SEMENTARA - hapus setelah selesai
+    $.post('/test-descrip', {_token: '{{ csrf_token() }}'}, function(res) {
+        console.log('DEBUG:', res);
+    });
+    
     const TARGET   = 5;
     const USERNAME = "{{ $karyawan->username }}";
     const USER_ID  = {{ $karyawan->id }};

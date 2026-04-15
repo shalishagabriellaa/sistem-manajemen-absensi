@@ -572,18 +572,18 @@ class authController extends Controller
         return redirect()->to('/');
     }
 
-    public function ajaxGetNeural()
+public function ajaxGetNeural()
 {
-    $path = public_path('neural.json');
-
+    $path = $_SERVER['DOCUMENT_ROOT'] . '/neural.json';
+    
     if (!file_exists($path)) {
-        echo '[]';
-        return;
+        file_put_contents($path, '[]');
     }
-
-    $inp       = file_get_contents($path);
+    
+    $inp = file_get_contents($path);
     $tempArray = json_decode($inp);
-    echo json_encode($tempArray);
+    $jsonData = json_encode($tempArray);
+    echo $jsonData;
 }
 
     public function registerProses(Request $request)

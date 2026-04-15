@@ -91,6 +91,109 @@ class dashboardController extends Controller
         }
     }
 
+    public function realtimeStats()
+{
+    if (!$this->hasAdminAccess()) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+
+    date_default_timezone_set(config('app.timezone'));
+
+    $tgl_skrg    = date("Y-m-d");
+    $tgl_kmrn    = date("Y-m-d", strtotime('-1 day'));
+    $bulan_skrg  = date('m');
+    $tahun_skrg  = date('Y');
+    $jmlh_bulan  = cal_days_in_month(CAL_GREGORIAN, $bulan_skrg, $tahun_skrg);
+    $tgl_mulai   = date('Y-m-01');
+    $tgl_akhir   = date('Y-m-' . $jmlh_bulan);
+
+    $jumlah_user = User::count();
+
+    // ── Hari Ini ──────────────────────────────────────────────
+    $masuk             = MappingShift::where('tanggal', $tgl_skrg)->where('status_absen', 'Masuk')->count();
+    $izin_telat        = MappingShift::where('tanggal', $tgl_skrg)->where('status_absen', 'Izin Telat')->count();
+    $izin_pulang_cepat = MappingShift::where('tanggal', $tgl_skrg)->where('status_absen', 'Izin Pulang Cepat')->count();
+    $izin_masuk        = MappingShift::where('tanggal', $tgl_skrg)->where('status_absen', 'Izin Masuk')->count();
+    $libur             = MappingShift::where('tanggal', $tgl_skrg)->where('status_absen', 'Libur')->count();
+    $cuti              = MappingShift::where('tanggal', $tgl_skrg)->where('status_absen', 'Cuti')->count();
+    $sakit             = MappingShift::where('tanggal', $tgl_skrg)->where('status_absen', 'Sakit')->count();
+    $lembur            = Lembur::where('tanggal', $tgl_skrg)->count();
+
+    $hadir_hari_ini = $masuk + $izin_telat + $izin_pulang_cepat;
+    $tidak_hadir    = max(0, $jumlah_user - ($hadir_hari_ini + $libur + $cuti + $izin_masuk + $sakit));
+
+    // ── Kemarin (untuk trend) ─────────────────────────────────
+    $masuk_kmrn        = MappingShift::where('tanggal', $tgl_kmrn)->where('status_absen', 'Masuk')->count();
+    $iz_telat_kmrn     = MappingShift::where('tanggal', $tgl_kmrn)->where('status_absen', 'Izin Telat')->count();
+    $iz_pc_kmrn        = MappingShift::where('tanggal', $tgl_kmrn)->where('status_absen', 'Izin Pulang Cepat')->count();
+    $iz_masuk_kmrn     = MappingShift::where('tanggal', $tgl_kmrn)->where('status_absen', 'Izin Masuk')->count();
+    $libur_kmrn        = MappingShift::where('tanggal', $tgl_kmrn)->where('status_absen', 'Libur')->count();
+    $cuti_kmrn         = MappingShift::where('tanggal', $tgl_kmrn)->where('status_absen', 'Cuti')->count();
+    $sakit_kmrn        = MappingShift::where('tanggal', $tgl_kmrn)->where('status_absen', 'Sakit')->count();
+
+    $hadir_kmrn     = $masuk_kmrn + $iz_telat_kmrn + $iz_pc_kmrn;
+    $tdk_hadir_kmrn = max(0, $jumlah_user - ($hadir_kmrn + $libur_kmrn + $cuti_kmrn + $iz_masuk_kmrn + $sakit_kmrn));
+
+    // ── Trend ─────────────────────────────────────────────────
+    $trend_hadir = $hadir_kmrn > 0
+        ? round((($hadir_hari_ini - $hadir_kmrn) / $hadir_kmrn) * 100, 1)
+        : ($hadir_hari_ini > 0 ? 100 : 0);
+
+    $trend_tidak_hadir = $tdk_hadir_kmrn > 0
+        ? round((($tidak_hadir - $tdk_hadir_kmrn) / $tdk_hadir_kmrn) * 100, 1)
+        : ($tidak_hadir > 0 ? 100 : 0);
+
+    // Trend pegawai baru bulan ini vs bulan lalu
+    $bulan_lalu       = date('m', strtotime('-1 month'));
+    $tahun_bulan_lalu = date('Y', strtotime('-1 month'));
+    $user_bln_lalu    = User::whereYear('created_at', $tahun_bulan_lalu)->whereMonth('created_at', $bulan_lalu)->count();
+    $user_bln_ini     = User::whereYear('created_at', $tahun_skrg)->whereMonth('created_at', $bulan_skrg)->count();
+    $trend_user       = $user_bln_lalu > 0
+        ? round((($user_bln_ini - $user_bln_lalu) / $user_bln_lalu) * 100, 1)
+        : ($user_bln_ini > 0 ? 100 : 0);
+
+    // ── Financial (dari masing-masing controller-nya) ─────────
+    $payroll       = Payroll::where('bulan', $bulan_skrg)->where('tahun', $tahun_skrg)->sum('grand_total');
+    $kasbon        = Kasbon::whereBetween('tanggal', [$tgl_mulai, $tgl_akhir])->where('status', 'Acc')->sum('nominal');
+    $reimbursement = Reimbursement::whereBetween('tanggal', [$tgl_mulai, $tgl_akhir])->where('status', 'Approved')->sum('total');
+
+    // ── Chart ─────────────────────────────────────────────────
+    $chartData = $this->getAttendanceChartData($tahun_skrg, $bulan_skrg);
+
+    return response()->json([
+        // Waktu
+        'last_updated'          => date('H:i:s'),
+
+        // Stat cards utama
+        'jumlah_user'           => $jumlah_user,
+        'hadir'                 => $hadir_hari_ini,
+        'hadir_persen'          => $jumlah_user > 0 ? round(($hadir_hari_ini / $jumlah_user) * 100) : 0,
+        'tidak_hadir'           => $tidak_hadir,
+        'libur'                 => $libur,
+
+        // Trend
+        'trend_hadir'           => $trend_hadir,
+        'trend_tidak_hadir'     => $trend_tidak_hadir,
+        'trend_user'            => $trend_user,
+
+        // Metric cards
+        'lembur'                => $lembur,
+        'cuti'                  => $cuti,
+        'sakit'                 => $sakit,
+        'izin'                  => $izin_masuk,
+        'izin_telat'            => $izin_telat,
+        'izin_pulang_cepat'     => $izin_pulang_cepat,
+
+        // Financial
+        'payroll_format'        => 'Rp ' . number_format($payroll, 0, ',', '.'),
+        'kasbon_format'         => 'Rp ' . number_format($kasbon, 0, ',', '.'),
+        'reimbursement_format'  => 'Rp ' . number_format($reimbursement, 0, ',', '.'),
+
+        // Chart
+        'chart_data'            => $chartData,
+    ]);
+}
+
     public function menu()
     {
         return view('dashboard.menu', [

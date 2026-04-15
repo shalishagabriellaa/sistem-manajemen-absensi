@@ -99,7 +99,6 @@
     .info-value {
       display: table-cell;
     }
-    /* Kanan — label lebih pendek */
     .info-right .info-label {
       width: 105px;
     }
@@ -205,12 +204,8 @@
       border-top: 1px solid #ccc;
       padding-top: 8px;
     }
-    .footer-info .rek-line {
-      margin-bottom: 4px;
-    }
-    .footer-info .masa-kerja {
-      margin-bottom: 4px;
-    }
+    .footer-info .rek-line { margin-bottom: 4px; }
+    .footer-info .masa-kerja { margin-bottom: 4px; }
     .footer-info .system-note {
       color: #888;
       font-size: 9px;
@@ -220,21 +215,11 @@
     @media print {
       .no-print { display: none; }
     }
-
-    .absen-table,
-    .absen-table th,
-    .absen-table td,
-    .keu-table,
-    .keu-table th,
-    .keu-table td {
-      border: none !important;
-    }
   </style>
 </head>
 <body>
 
 @php
-  /* ── Hitung data yang dibutuhkan ─────────────────────────── */
   $user     = $data->user;
   $jabatan  = optional(optional($user)->Jabatan)->nama_jabatan ?? '-';
 
@@ -242,37 +227,44 @@
                 'Juli','Agustus','September','Oktober','November','Desember'];
   $bulanStr  = $namaBulan[$data->bulan] ?? $data->bulan;
 
-  /* Logo MET */
-  $logo_path = public_path('assets/img/met.png');
-  $logo_data = null;
-  $logo_mime = null;
-  if (file_exists($logo_path)) {
-      $logo_mime = mime_content_type($logo_path);
-      $logo_data = base64_encode(file_get_contents($logo_path));
-  }
+  $logo_base64 = null;
+    try {
+        $logo_path = $_SERVER['DOCUMENT_ROOT'] . '/assets/img/met.png';
+        
+        if (file_exists($logo_path) && is_readable($logo_path)) {
+            $logo_raw = file_get_contents($logo_path);
+            if ($logo_raw !== false) {
+                $logo_base64 = 'data:image/png;base64,' . base64_encode($logo_raw);
+            }
+        }
+    } catch (\Exception $e) {
+        $logo_base64 = null;
+    }
 
-  /* Masa kerja dari tgl_join */
   $masaKerja = '';
-  if ($user->tgl_join) {
+  if (!empty($user->tgl_join)) {
       try {
           $join = \Carbon\Carbon::parse($user->tgl_join);
-          $now  = \Carbon\Carbon::now();
-          $diff = $join->diff($now);
+          $diff = $join->diff(\Carbon\Carbon::now());
           $masaKerja = $diff->y . ' tahun, ' . $diff->m . ' bulan, ' . $diff->d . ' hari';
       } catch(\Exception $e) {
           $masaKerja = '-';
       }
   }
 
-  /* Sisa cuti */
-  $sisaCuti = $user->izin_cuti ?? 0;
-
-  /* Data absensi */
-  $hariMasuk  = $data->jumlah_tunjangan_makan ?? 0;
-  $hariAbsen  = $data->jumlah_mangkir ?? 0;
-  $jumlahIzin = $data->jumlah_izin ?? 0;
+  $sisaCuti        = $user->izin_cuti ?? 0;
+  $hariMasuk       = $data->jumlah_tunjangan_makan ?? 0;
+  $hariAbsen       = $data->jumlah_mangkir ?? 0;
+  $jumlahIzin      = $data->jumlah_izin ?? 0;
   $jumlahLembur    = $data->jumlah_lembur ?? 0;
   $jumlahTerlambat = $data->jumlah_terlambat ?? 0;
+
+  function fmt($val) {
+    if (is_null($val) || $val === '') return '0';
+    // Hapus semua titik dan koma, lalu format ulang
+    $clean = str_replace(['.', ','], '', (string) $val);
+    return number_format((float) $clean, 0, ',', '.');
+}
 @endphp
 
 <div class="page">
@@ -285,15 +277,14 @@
       <div class="slip-title">Slip Gaji Karyawan</div>
     </div>
     <div class="header-right">
-      @if($logo_data)
-        <img src="data:{{ $logo_mime }};base64,{{ $logo_data }}" alt="MET Logo">
+      @if($logo_base64)
+        <img src="{{ $logo_base64 }}" alt="MET Logo">
       @endif
     </div>
   </div>
 
   {{-- INFO KARYAWAN --}}
   <div class="info-wrap">
-    {{-- Kiri --}}
     <div class="info-left">
       <div class="info-row">
         <span class="info-label">Nama Pegawai</span>
@@ -316,7 +307,6 @@
         <span class="info-value">{{ date('d-M-Y') }}</span>
       </div>
     </div>
-    {{-- Kanan --}}
     <div class="info-right">
       <div class="info-row">
         <span class="info-label">Bulan</span>
@@ -346,146 +336,74 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td>Hari Masuk</td>
-        <td class="dur">{{ $hariMasuk }} Hari</td>
-      </tr>
-      <tr>
-        <td>Hari Absen (Mangkir)</td>
-        <td class="dur">{{ $hariAbsen }} Hari</td>
-      </tr>
-      <tr>
-        <td>Izin</td>
-        <td class="dur">{{ $jumlahIzin }} Hari</td>
-      </tr>
-      <tr>
-        <td>Keterlambatan</td>
-        <td class="dur">{{ $jumlahTerlambat }} Kali</td>
-      </tr>
-      <tr>
-        <td>Overtime Hour</td>
-        <td class="dur">{{ $jumlahLembur }} Jam</td>
-      </tr>
+      <tr><td>Hari Masuk</td><td class="dur">{{ $hariMasuk }} Hari</td></tr>
+      <tr><td>Hari Absen (Mangkir)</td><td class="dur">{{ $hariAbsen }} Hari</td></tr>
+      <tr><td>Izin</td><td class="dur">{{ $jumlahIzin }} Hari</td></tr>
+      <tr><td>Keterlambatan</td><td class="dur">{{ $jumlahTerlambat }} Kali</td></tr>
+      <tr><td>Overtime Hour</td><td class="dur">{{ $jumlahLembur }} Jam</td></tr>
       @if($sisaCuti > 0)
-      <tr>
-        <td>Sisa Cuti</td>
-        <td class="dur">{{ $sisaCuti }} Hari</td>
-      </tr>
+      <tr><td>Sisa Cuti</td><td class="dur">{{ $sisaCuti }} Hari</td></tr>
       @endif
     </tbody>
   </table>
 
-  {{-- PENDAPATAN --}}
-  <div class="section-title">PENDAPATAN</div>
-  <table class="keu-table">
-    <thead>
-      <tr>
-        <th style="width:65%">Status</th>
-        <th class="right" style="width:35%">Nilai (Rp)</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Gaji Pokok</td>
-        <td class="nilai">{{ number_format($data->gaji_pokok) }}</td>
-      </tr>
-      <tr>
-        <td>Tunjangan Transport</td>
-        <td class="nilai">{{ number_format($data->total_tunjangan_transport) }}</td>
-      </tr>
-      <tr>
-        <td>Uang Makan</td>
-        <td class="nilai">{{ number_format($data->total_tunjangan_makan) }}</td>
-      </tr>
-      <tr>
-        <td>Tunjangan BPJS Kesehatan</td>
-        <td class="nilai">{{ number_format($data->total_tunjangan_bpjs_kesehatan) }}</td>
-      </tr>
-      <tr>
-        <td>Tunjangan BPJS Ketenagakerjaan</td>
-        <td class="nilai">{{ number_format($data->total_tunjangan_bpjs_ketenagakerjaan) }}</td>
-      </tr>
-      <tr>
-        <td>Lembur</td>
-        <td class="nilai">{{ number_format($data->total_lembur) }}</td>
-      </tr>
-      <tr>
-        <td>Bonus Kehadiran</td>
-        <td class="nilai">{{ number_format($data->total_kehadiran) }}</td>
-      </tr>
-      <tr>
-        <td>Bonus Pribadi (KPI)</td>
-        <td class="nilai">{{ number_format($data->bonus_pribadi) }}</td>
-      </tr>
-      <tr>
-        <td>Bonus Team (KPI)</td>
-        <td class="nilai">{{ number_format($data->bonus_team) }}</td>
-      </tr>
-      <tr>
-        <td>THR</td>
-        <td class="nilai">{{ number_format($data->total_thr) }}</td>
-      </tr>
-      <tr>
-        <td>Reimbursement</td>
-        <td class="nilai">{{ number_format($data->total_reimbursement) }}</td>
-      </tr>
-      <tr class="subtotal">
-        <td>Total Pendapatan</td>
-        <td class="nilai">{{ number_format($data->total_penjumlahan) }}</td>
-      </tr>
-    </tbody>
-  </table>
-
-  {{-- POTONGAN --}}
-  <div class="section-title">POTONGAN</div>
-  <table class="keu-table">
-    <thead>
-      <tr>
-        <th style="width:65%">Status</th>
-        <th class="right" style="width:35%">Nilai (Rp)</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Potongan BPJS Kesehatan</td>
-        <td class="nilai">{{ number_format($data->total_potongan_bpjs_kesehatan) }}</td>
-      </tr>
-      <tr>
-        <td>Potongan BPJS Ketenagakerjaan</td>
-        <td class="nilai">{{ number_format($data->total_potongan_bpjs_ketenagakerjaan) }}</td>
-      </tr>
-      <tr>
-        <td>Potongan Absen (Mangkir)</td>
-        <td class="nilai">{{ number_format($data->total_mangkir) }}</td>
-      </tr>
-      <tr>
-        <td>Potongan Izin</td>
-        <td class="nilai">{{ number_format($data->total_izin) }}</td>
-      </tr>
-      <tr>
-        <td>Potongan Keterlambatan</td>
-        <td class="nilai">{{ number_format($data->total_terlambat) }}</td>
-      </tr>
-      <tr>
-        <td>Kasbon</td>
-        <td class="nilai">{{ number_format($data->bayar_kasbon) }}</td>
-      </tr>
-      <tr>
-        <td>Loss</td>
-        <td class="nilai">{{ number_format($data->loss) }}</td>
-      </tr>
-      <tr class="subtotal">
-        <td>Total Potongan</td>
-        <td class="nilai">{{ number_format($data->total_pengurangan) }}</td>
-      </tr>
-    </tbody>
-  </table>
-
-  {{-- GRAND TOTAL --}}
-  <div class="grand-total-wrap">
-    <div class="grand-total-label">JUMLAH GAJI DITERIMA</div>
-    <div class="grand-total-value">Rp {{ number_format($data->grand_total) }}</div>
-  </div>
+    {{-- PENDAPATAN --}}
+    <div class="section-title">PENDAPATAN</div>
+    <table class="keu-table">
+      <thead>
+        <tr>
+          <th style="width:65%">Komponen</th>
+          <th class="right" style="width:35%">Nilai (Rp)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Gaji Pokok</td><td class="nilai">{{ fmt($data->gaji_pokok) }}</td></tr>
+        <tr><td>Tunjangan Transport</td><td class="nilai">{{ fmt($data->total_tunjangan_transport) }}</td></tr>
+        <tr><td>Uang Makan</td><td class="nilai">{{ fmt($data->total_tunjangan_makan) }}</td></tr>
+        <tr><td>Tunjangan BPJS Kesehatan</td><td class="nilai">{{ fmt($data->total_tunjangan_bpjs_kesehatan) }}</td></tr>
+        <tr><td>Tunjangan BPJS Ketenagakerjaan</td><td class="nilai">{{ fmt($data->total_tunjangan_bpjs_ketenagakerjaan) }}</td></tr>
+        <tr><td>Lembur</td><td class="nilai">{{ fmt($data->total_lembur) }}</td></tr>
+        <tr><td>Bonus Kehadiran 100%</td><td class="nilai">{{ fmt($data->total_kehadiran) }}</td></tr>
+        <tr><td>Bonus Pribadi (KPI)</td><td class="nilai">{{ fmt($data->bonus_pribadi) }}</td></tr>
+        <tr><td>Bonus Team (KPI)</td><td class="nilai">{{ fmt($data->bonus_team) }}</td></tr>
+        <tr><td>THR</td><td class="nilai">{{ fmt($data->total_thr) }}</td></tr>
+        <tr><td>Reimbursement</td><td class="nilai">{{ fmt($data->total_reimbursement) }}</td></tr>
+        <tr class="subtotal">
+          <td>Total Pendapatan</td>
+          <td class="nilai">{{ fmt($data->total_penjumlahan) }}</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    {{-- POTONGAN --}}
+    <div class="section-title">POTONGAN</div>
+    <table class="keu-table">
+      <thead>
+        <tr>
+          <th style="width:65%">Komponen</th>
+          <th class="right" style="width:35%">Nilai (Rp)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Potongan BPJS Kesehatan</td><td class="nilai">{{ fmt($data->total_potongan_bpjs_kesehatan) }}</td></tr>
+        <tr><td>Potongan BPJS Ketenagakerjaan</td><td class="nilai">{{ fmt($data->total_potongan_bpjs_ketenagakerjaan) }}</td></tr>
+        <tr><td>Potongan Mangkir</td><td class="nilai">{{ fmt($data->total_mangkir) }}</td></tr>
+        <tr><td>Potongan Izin</td><td class="nilai">{{ fmt($data->total_izin) }}</td></tr>
+        <tr><td>Potongan Keterlambatan</td><td class="nilai">{{ fmt($data->total_terlambat) }}</td></tr>
+        <tr><td>Kasbon</td><td class="nilai">{{ fmt($data->bayar_kasbon) }}</td></tr>
+        <tr><td>Loss</td><td class="nilai">{{ fmt($data->loss) }}</td></tr>
+        <tr class="subtotal">
+          <td>Total Potongan</td>
+          <td class="nilai">{{ fmt($data->total_pengurangan) }}</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    {{-- GRAND TOTAL --}}
+    <div class="grand-total-wrap">
+      <div class="grand-total-label">JUMLAH GAJI DITERIMA</div>
+      <div class="grand-total-value">Rp {{ fmt($data->grand_total) }}</div>
+    </div>
 
   {{-- FOOTER INFO --}}
   <div class="footer-info">
@@ -497,21 +415,35 @@
       oleh Sistem HRD Metech | jambimetech@gmail.com
     </div>
     @if($masaKerja)
-    <div class="masa-kerja">
-      Masa Kerja &nbsp;: <strong>{{ $masaKerja }}</strong>
-    </div>
+    <div class="masa-kerja">Masa Kerja &nbsp;: <strong>{{ $masaKerja }}</strong></div>
     @endif
     @if($sisaCuti > 0)
-    <div>
-      Sisa Cuti &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <strong>{{ $sisaCuti }} Hari / Tahun</strong>
-    </div>
+    <div>Sisa Cuti &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <strong>{{ $sisaCuti }} Hari / Tahun</strong></div>
     @endif
     <div class="system-note">
       Slip gaji ini diterbitkan secara otomatis oleh sistem &mdash; PT Multi Engineering Technologies | jambimetech@gmail.com
     </div>
   </div>
 
-</div>{{-- end .page --}}
+</div>
+
+<!-- Tombol Print -->
+<div class="no-print" style="width:750px; margin: 16px auto; display:flex; gap:10px; justify-content:flex-end;">
+  <button onclick="window.print()" style="
+    background:#003366; color:#fff; border:none; padding:8px 20px;
+    font-size:12px; font-weight:bold; border-radius:4px; cursor:pointer;
+    display:flex; align-items:center; gap:6px;">
+    🖨️ Print / Save PDF
+  </button>
+</div>
+
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    body { margin: 0; }
+    .page { border: none; }
+  }
+</style>
 
 </body>
 </html>

@@ -25,9 +25,16 @@ class BudgetingController extends Controller
                                 $query->where('user_id', auth()->user()->id);
                             });
                     })
+                    ->orderByRaw("
+                        CASE 
+                            WHEN status = 'Pending' THEN 1
+                            WHEN status = 'Rejected' THEN 2
+                            WHEN status = 'Approved' THEN 3
+                        END
+                    ")
                     ->orderBy('tanggal', 'DESC')
-                    ->paginate(10)
-                    ->withQueryString();
+                                        ->paginate(10)
+                                        ->withQueryString();
 
         if (auth()->user()->is_admin == 'admin') {
             return view('budgeting.index', compact('title', 'budgeting'));
@@ -53,6 +60,7 @@ class BudgetingController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'project_id' => 'nullable',   // <-- tambahkan ini
             'tanggal'    => 'required',
             'user_id'    => 'required',
             'event'      => 'required',
@@ -147,13 +155,18 @@ class BudgetingController extends Controller
         return redirect('/budgeting')->with('success', 'Data Berhasil Diupdate');
     }
 
+  
     public function approval(Request $request, $id)
     {
         $budgeting = Budgeting::find($id);
-        $validated = $request->validate(['status' => 'required']);
+        $validated = $request->validate([
+            'status'           => 'required',
+            'jumlah_disetujui' => 'nullable|numeric',
+            'alasan'           => 'nullable|string',
+        ]);
         $budgeting->update($validated);
         return redirect('/budgeting')->with('success', 'Status Berhasil Diupdate');
-    }
+        }
 
     public function delete($id)
     {
@@ -166,4 +179,13 @@ class BudgetingController extends Controller
     {
         return Kategori::find($request->kategori_id);
     }
+
+    public function show($id)
+{
+    $title = 'Detail Budgeting';
+    $budgeting = Budgeting::with(['user', 'kategori', 'project', 'items.user'])->findOrFail($id);
+    return view('budgeting.show', compact('title', 'budgeting'));
+}
+
+    
 }

@@ -280,9 +280,9 @@
                     <div class="swiper-wrapper">
                         @foreach ($berita as $ber)
                             <div class="swiper-slide">
-                                <a href="{{ url('/berita-user/show/'.$ber->id) }}">
-                                    <img src="{{ url('/storage/'.$ber->berita_file_path) }}" alt="{{ $ber->berita_file_name }}" style="width:100%; border-radius:8px;">
-                                </a>
+                        <a href="{{ url('/berita-user/show/'.$ber->id) }}">
+                            <img style="width: 200px" src="{{ asset($ber->berita_file_path) }}" alt="{{ $ber->berita_file_name }}">
+                        </a>
                             </div>
                         @endforeach
                     </div>

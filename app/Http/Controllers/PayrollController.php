@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Models\Payroll;
 use App\Models\StatusPtkp;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class PayrollController extends Controller
 {
@@ -121,6 +120,9 @@ class PayrollController extends Controller
             'uang_thr'                         => 'nullable',
             'total_thr'                        => 'nullable',
             'loss'                             => 'nullable',
+            'total_penjumlahan'                => 'nullable',
+            'total_pengurangan'                => 'nullable',
+            'grand_total'                      => 'nullable',
         ]);
 
         $moneyFields = [
@@ -138,12 +140,13 @@ class PayrollController extends Controller
             'saldo_kasbon','bayar_kasbon',
             'uang_thr','total_thr',
             'loss',
+            'total_penjumlahan','total_pengurangan','grand_total',
         ];
 
         foreach ($moneyFields as $field) {
-            $validated[$field] = isset($validated[$field])
-                ? (int) str_replace(',', '', $validated[$field])
-                : 0;
+            $raw = $validated[$field] ?? '0';
+                // Hapus titik (pemisah ribuan) DAN koma, lalu cast ke integer
+                $validated[$field] = (int) str_replace(['.', ','], '', $raw);
         }
 
         $intFields = [
@@ -154,6 +157,32 @@ class PayrollController extends Controller
         foreach ($intFields as $field) {
             $validated[$field] = isset($validated[$field]) ? (int)$validated[$field] : 0;
         }
+
+        // Hitung ulang di server untuk memastikan akurasi
+        $validated['total_penjumlahan'] =
+            $validated['gaji_pokok'] +
+            $validated['total_reimbursement'] +
+            $validated['total_tunjangan_transport'] +
+            $validated['total_tunjangan_makan'] +
+            $validated['total_tunjangan_bpjs_kesehatan'] +
+            $validated['total_tunjangan_bpjs_ketenagakerjaan'] +
+            $validated['total_lembur'] +
+            $validated['total_kehadiran'] +
+            $validated['bonus_pribadi'] +
+            $validated['bonus_team'] +
+            $validated['bonus_jackpot'] +
+            $validated['total_thr'];
+
+        $validated['total_pengurangan'] =
+            $validated['total_potongan_bpjs_kesehatan'] +
+            $validated['total_potongan_bpjs_ketenagakerjaan'] +
+            $validated['total_terlambat'] +
+            $validated['total_mangkir'] +
+            $validated['total_izin'] +
+            $validated['bayar_kasbon'] +
+            $validated['loss'];
+
+        $validated['grand_total'] = max(0, $validated['total_penjumlahan'] - $validated['total_pengurangan']);
 
         if (!empty($validated['bayar_kasbon']) && $validated['bayar_kasbon'] > 0) {
             $user = User::find($validated['user_id']);
@@ -166,9 +195,6 @@ class PayrollController extends Controller
                 ]);
             }
         }
-
-        // Ketiga kolom ini GENERATED COLUMN di MariaDB — jangan dikirim
-        unset($validated['total_penjumlahan'], $validated['total_pengurangan'], $validated['grand_total']);
 
         Payroll::create($validated);
 
@@ -250,8 +276,36 @@ class PayrollController extends Controller
         ];
 
         foreach ($moneyFields as $field) {
-            $validated[$field] = (int) str_replace(',', '', $validated[$field] ?? '0');
+            $raw = $validated[$field] ?? '0';
+                // Hapus titik (pemisah ribuan) DAN koma, lalu cast ke integer
+                $validated[$field] = (int) str_replace(['.', ','], '', $raw);
         }
+
+        // Hitung ulang di server
+        $validated['total_penjumlahan'] =
+            $validated['gaji_pokok'] +
+            $validated['total_reimbursement'] +
+            $validated['total_tunjangan_transport'] +
+            $validated['total_tunjangan_makan'] +
+            $validated['total_tunjangan_bpjs_kesehatan'] +
+            $validated['total_tunjangan_bpjs_ketenagakerjaan'] +
+            $validated['total_lembur'] +
+            $validated['total_kehadiran'] +
+            $validated['bonus_pribadi'] +
+            $validated['bonus_team'] +
+            ($validated['bonus_jackpot'] ?? 0) +
+            $validated['total_thr'];
+
+        $validated['total_pengurangan'] =
+            $validated['total_potongan_bpjs_kesehatan'] +
+            $validated['total_potongan_bpjs_ketenagakerjaan'] +
+            $validated['total_terlambat'] +
+            $validated['total_mangkir'] +
+            $validated['total_izin'] +
+            $validated['bayar_kasbon'] +
+            $validated['loss'];
+
+        $validated['grand_total'] = max(0, $validated['total_penjumlahan'] - $validated['total_pengurangan']);
 
         $user = User::find($payroll->user_id);
         if ($user) {
@@ -263,7 +317,6 @@ class PayrollController extends Controller
             ]);
         }
 
-        unset($validated['total_penjumlahan'], $validated['total_pengurangan'], $validated['grand_total']);
         $payroll->update($validated);
 
         $user_update = User::find($request->user_id);
@@ -272,7 +325,7 @@ class PayrollController extends Controller
                 'saldo_kasbon'  => max(0, $user_update->saldo_kasbon  - $validated['bayar_kasbon']),
                 'bonus_pribadi' => max(0, $user_update->bonus_pribadi - $validated['bonus_pribadi']),
                 'bonus_team'    => max(0, $user_update->bonus_team    - $validated['bonus_team']),
-                'bonus_jackpot' => max(0, $user_update->bonus_jackpot - $validated['bonus_jackpot']),
+                'bonus_jackpot' => max(0, $user_update->bonus_jackpot - ($validated['bonus_jackpot'] ?? 0)),
             ]);
         }
 
@@ -292,11 +345,8 @@ class PayrollController extends Controller
 
     public function download($id)
     {
-        $pdf = Pdf::loadView('payroll.download', [
-            'title' => 'Penggajian',
-            'data'  => Payroll::with('user.Jabatan')->find($id)
-        ])->setPaper('a4', 'portrait');
-
-        return $pdf->stream('slip-gaji-' . $id . '.pdf');
+        $data = Payroll::with('user.Jabatan')->find($id);
+        if (!$data) { abort(404); }
+        return view('payroll.download', ['title' => 'Penggajian', 'data' => $data]);
     }
 }

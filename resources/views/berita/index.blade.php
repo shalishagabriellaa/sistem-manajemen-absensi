@@ -49,7 +49,9 @@
                                         <td>{!! $ber->isi !!}</td>
                                         <td>
                                             @if ($ber->berita_file_path)
-                                                <a href="{{ url('/storage/'.$ber->berita_file_path) }}" target="_blank"><img style="width: 200px" src="{{ asset('/storage/'.$ber->berita_file_path) }}" alt="{{ $ber->berita_file_name }}"></a>
+                                               <a href="{{ asset($ber->berita_file_path) }}" target="_blank">
+                                            <img style="width: 200px" src="{{ asset($ber->berita_file_path) }}" alt="{{ $ber->berita_file_name }}">
+                                        </a>
                                             @else
                                                 -
                                             @endif
