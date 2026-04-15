@@ -277,6 +277,11 @@
                           <li><a href="{{ url('/data-patroli') }}">Data Patroli</a></li>
                         </ul>
                       </li>
+                      
+                      <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title link-nav" href="{{ url('/project') }}"><i data-feather="briefcase"></i><span>Project</span></a>
+                      </li>
+                      
                       <li class="sidebar-list">
                         <a class="sidebar-link sidebar-title link-nav" href="{{ url('/kunjungan') }}"><i data-feather="navigation"></i><span>Kunjungan</span></a>
                       </li>
