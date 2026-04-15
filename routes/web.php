@@ -147,13 +147,19 @@ Route::get('/pegawai/edit-dinas/{id}', [karyawanController::class, 'editDinas'])
 Route::put('/pegawai/proses-edit-shift/{id}', [karyawanController::class, 'prosesEditShift'])->middleware('auth');
 Route::put('/pegawai/proses-edit-dinas/{id}', [karyawanController::class, 'prosesEditDinas'])->middleware('auth');
 
-Route::get('/kontrak', [KontrakController::class, 'index'])->middleware('admin');
-Route::get('/kontrak/tambah', [KontrakController::class, 'tambah'])->middleware('admin');
-Route::post('/kontrak/store', [KontrakController::class, 'store'])->middleware('admin');
-Route::get('/kontrak/edit/{id}', [KontrakController::class, 'edit'])->middleware('admin');
-Route::put('/kontrak/update/{id}', [KontrakController::class, 'update'])->middleware('admin');
-Route::delete('/kontrak/delete/{id}', [KontrakController::class, 'delete'])->middleware('admin');
-Route::get('/kontrak/export', [KontrakController::class, 'export'])->middleware('admin');
+Route::prefix('kontrak')->group(function () {
+    Route::get('/',                 [KontrakController::class, 'index'])->name('kontrak.index');
+    Route::get('/tambah',           [KontrakController::class, 'tambah'])->name('kontrak.tambah');
+    Route::post('/store',           [KontrakController::class, 'store'])->name('kontrak.store');
+    Route::get('/edit/{id}',        [KontrakController::class, 'edit'])->name('kontrak.edit');
+    Route::put('/update/{id}',      [KontrakController::class, 'update'])->name('kontrak.update');
+    Route::delete('/delete/{id}',   [KontrakController::class, 'delete'])->name('kontrak.delete');
+    Route::get('/export',           [KontrakController::class, 'export'])->name('kontrak.export');
+ 
+    // ── BARU: Draft & Generate .docx ──
+    Route::get('/draft/{id}',       [KontrakController::class, 'draft'])->name('kontrak.draft');
+    Route::get('/generate/{id}',    [KontrakController::class, 'generate'])->name('kontrak.generate');
+});
 
 Route::get('/absen', [AbsenController::class, 'index'])->middleware('auth');
 Route::get('/dinas-luar', [DinasLuar::class, 'index'])->middleware('auth');
