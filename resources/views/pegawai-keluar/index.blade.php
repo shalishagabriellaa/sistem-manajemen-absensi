@@ -404,7 +404,7 @@ textarea.form-control{
     {{-- HEADER --}}
     <div class="form-header">
         <div class="form-title">
-            <i class="fas fa-user-times" style="color:#3b4cca"></i>
+            <i class="fas fa-user-minus" style="color:#3b4cca"></i>
             {{ $title }}
         </div>
 
