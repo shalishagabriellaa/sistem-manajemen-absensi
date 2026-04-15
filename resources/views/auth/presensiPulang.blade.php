@@ -1,586 +1,671 @@
 @extends('templates.login')
 @section('container')
-    <style>
-        /* Modern responsive typography */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
-        * {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
-        /* Clean single-screen layout */
-        .clean-face-container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 1rem;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
+:root {
+    --dash-blue:    #3b4cca;
+    --dash-blue-dk: #2d3db4;
+    --dash-blue-lt: #5c6ed4;
 
-        /* Face Recognition Card */
-        .face-recognition-card {
-            background: #fefefe;
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 2rem 1.5rem;
-            box-shadow: 
-                0 10px 25px -5px rgba(0, 0, 0, 0.08),
-                0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(240, 240, 240, 0.8);
-            width: 100%;
-            text-align: center;
-            position: relative;
-        }
+    --blue-50:   #eef0fb;
+    --blue-100:  #d5d9f5;
+    --blue-200:  #adb5eb;
+    --blue-400:  #6e80df;
+    --blue-500:  #4f63d8;
+    --blue-600:  #3b4cca;
+    --blue-700:  #2d3db4;
+    --blue-800:  #1e2d8a;
 
-        /* Clean typography */
-        .clean-title {
-            font-size: clamp(1.25rem, 3vw, 1.5rem);
-            font-weight: 700;
-            color: #1f2937;
-            text-align: center;
-            margin-bottom: 0.75rem;
-            line-height: 1.2;
-        }
+    --slate-50:  #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
 
-        .clean-subtitle {
-            font-size: clamp(0.875rem, 2.5vw, 0.9375rem);
-            color: #6b7280;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            line-height: 1.5;
-        }
+    --accent-50:  #eef0fb;
+    --accent-100: #d5d9f5;
+    --accent-200: #adb5eb;
+    --accent-500: #4f63d8;
+    --accent-600: #3b4cca;
+    --accent-700: #2d3db4;
 
-        /* Video container */
-        .video-container {
-            position: relative;
-            margin: 1rem auto 1.5rem;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            max-width: 100%;
-            background: #000;
-        }
+    --red-400:   #f87171;
+    --red-500:   #ef4444;
+}
 
-        #video {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-radius: 12px;
-        }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+    min-height: 100vh;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    overflow-x: hidden;
+}
 
-        /* Canvas overlay - positioned relative to video container */
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Allow clicks to pass through */
-            border-radius: 12px;
-        }
+/* ══════════════════════════════
+   ANIMATED BACKGROUND
+══════════════════════════════ */
+.aurora-bg {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 10% 10%, rgba(59,76,202,0.12), transparent 40%),
+        radial-gradient(circle at 90% 90%, rgba(59,76,202,0.08), transparent 40%),
+        linear-gradient(180deg, #f6f8ff 0%, #eef2ff 100%);
+}
+.aurora-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 80% 60% at 20% 10%,  rgba(59,76,202,0.60) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 70% at 85% 80%,  rgba(79,70,229,0.50) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 55% 40%,  rgba(45,61,180,0.22) 0%, transparent 55%);
+}
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.35;
+    pointer-events: none;
+    will-change: transform;
+}
+.orb-a {
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(59,76,202,0.25) 0%, transparent 70%);
+    top: -200px; left: -180px;
+    animation: orb-move-a 20s ease-in-out infinite alternate;
+}
+.orb-b {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 70%);
+    bottom: -180px; right: -160px;
+    animation: orb-move-b 25s ease-in-out infinite alternate;
+}
+.orb-c {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(45,61,180,0.18) 0%, transparent 70%);
+    top: 45%; left: 40%;
+    transform: translate(-50%,-50%);
+    animation: orb-move-c 30s ease-in-out infinite alternate;
+}
+@keyframes orb-move-a {
+    0%   { transform: translate(0,0) scale(1); }
+    100% { transform: translate(100px,80px) scale(1.15); }
+}
+@keyframes orb-move-b {
+    0%   { transform: translate(0,0) scale(1); }
+    100% { transform: translate(-80px,-100px) scale(1.1); }
+}
+@keyframes orb-move-c {
+    0%   { transform: translate(-50%,-50%) scale(1); }
+    100% { transform: translate(-45%,-55%) scale(1.2); }
+}
+.arc-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.07);
+    pointer-events: none;
+    animation: ring-pulse 8s ease-in-out infinite alternate;
+}
+.arc-1 { width:800px; height:800px; top:-300px;  right:-250px; animation-delay:0s; }
+.arc-2 { width:600px; height:600px; top:-200px;  right:-150px; animation-delay:1.5s; }
+.arc-3 { width:400px; height:400px; top:-100px;  right:-50px;  animation-delay:3s; }
+.arc-4 { width:700px; height:700px; bottom:-280px; left:-220px; animation-delay:2s; }
+.arc-5 { width:500px; height:500px; bottom:-180px; left:-120px; animation-delay:4s; }
+@keyframes ring-pulse {
+    0%   { opacity:.5;  transform:scale(1); }
+    100% { opacity:1;   transform:scale(1.04); }
+}
 
-        /* Status indicator */
-        .status-indicator {
-            background: rgba(239, 68, 68, 0.05);
-            border: 1px solid rgba(239, 68, 68, 0.1);
-            border-radius: 10px;
-            padding: 0.75rem;
-            margin-bottom: 1.5rem;
-        }
+/* ══════════════════════════════
+   PAGE LAYOUT
+══════════════════════════════ */
+.page-wrap {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 2rem 1.5rem;
+}
+.card-outer {
+    width: 100%;
+    max-width: 820px;
+    display: flex;
+    min-height: 540px;
+    border-radius: 24px; overflow: hidden;
+    background: white;
+    border: 1px solid rgba(226,232,240,0.8);
+    box-shadow:
+        0 24px 64px rgba(0,0,0,0.10),
+        0 4px 16px rgba(0,0,0,0.04);
+}
 
-        .status-text {
-            color: #dc2626;
-            font-size: clamp(0.8125rem, 2vw, 0.875rem);
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            justify-content: center;
-        }
+/* RIGHT FACE PANEL */
+.form-panel {
+    flex: 1;
+    background: #ffffff;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.75rem 2rem;
+    overflow-y: auto;
+    position: relative;
+}
+.form-panel::before {
+    content: '';
+    position: absolute; top: 0; right: 0;
+    width: 200px; height: 200px;
+    background: radial-gradient(ellipse at top right, rgba(189,198,245,0.35) 0%, transparent 70%);
+    pointer-events: none;
+}
+.fp-inner {
+    width: 100%; max-width: 400px;
+    position: relative; z-index: 1;
+}
 
-        /* Clean button */
-        .clean-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem 1.25rem;
-            font-size: clamp(0.875rem, 2.2vw, 0.9375rem);
-            font-weight: 600;
-            color: white;
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 3px 6px -1px rgba(107, 114, 128, 0.25);
-            text-decoration: none;
-            margin-top: 1rem;
-            position: relative;
-            z-index: 10; /* Ensure button is above canvas */
-        }
+/* Title */
+.fp-title {
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    font-weight: 800;
+    color: var(--slate-900);
+    letter-spacing: -.025em;
+    line-height: 1.2;
+    margin-bottom: .375rem;
+}
+.fp-sub {
+    font-size: .875rem;
+    color: var(--slate-400);
+    margin-bottom: 1.25rem;
+    line-height: 1.6;
+}
 
-        .clean-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px -1px rgba(107, 114, 128, 0.35);
-            color: white;
-            text-decoration: none;
-        }
+/* Instructions box */
+.instructions-box {
+    background: var(--accent-50);
+    border: 1.5px solid var(--accent-200);
+    border-radius: 10px;
+    padding: .875rem 1rem;
+    margin-bottom: 1rem;
+}
+.instructions-title {
+    font-size: .8125rem; font-weight: 700;
+    color: var(--accent-700);
+    display: flex; align-items: center; gap: .375rem;
+    margin-bottom: .5rem;
+}
+.instructions-list {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: .3rem;
+}
+.instructions-item {
+    font-size: .8rem; color: var(--accent-700);
+    display: flex; align-items: flex-start; gap: .5rem;
+    line-height: 1.4;
+}
+.instructions-item i { font-size: .5rem; margin-top: .35rem; flex-shrink: 0; }
 
-        /* Instructions */
-        .instructions {
-            background: rgba(239, 68, 68, 0.05);
-            border: 1px solid rgba(239, 68, 68, 0.1);
-            border-radius: 10px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-        }
+/* Status indicator */
+.status-box {
+    background: var(--accent-50);
+    border: 1.5px solid var(--accent-200);
+    border-radius: 10px;
+    padding: .625rem 1rem;
+    margin-bottom: .875rem;
+    display: flex; align-items: center; gap: .5rem;
+    transition: all .25s;
+}
+.status-box i { font-size: .8125rem; color: var(--accent-600); flex-shrink: 0; }
+.status-text {
+    font-size: .8125rem; font-weight: 600;
+    color: var(--accent-700);
+}
 
-        .instruction-title {
-            color: #dc2626;
-            font-size: clamp(0.875rem, 2vw, 0.9375rem);
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+/* Location box */
+.location-box {
+    background: var(--blue-50);
+    border: 1.5px solid var(--blue-200);
+    border-radius: 10px;
+    padding: .5625rem 1rem;
+    margin-bottom: .875rem;
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .8rem; font-weight: 600;
+    color: var(--blue-600);
+    transition: all .25s;
+}
+.location-box i { flex-shrink: 0; }
 
-        .instruction-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+/* Video container */
+.video-wrap {
+    max-height: 300px;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    border: 2px solid var(--slate-200);
+}
+#video {
+    width: 100%; height: auto;
+    display: block; border-radius: 10px;
+}
+canvas {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; border-radius: 10px;
+}
 
-        .instruction-item {
-            color: #b91c1c;
-            font-size: clamp(0.8125rem, 2vw, 0.875rem);
-            margin-bottom: 0.25rem;
-            display: flex;
-            align-items: flex-start;
-            gap: 0.5rem;
-        }
+/* Buttons */
+.btn-back {
+    width: 100%;
+    padding: .8125rem 1.5rem;
+    font-size: .875rem; font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--slate-700) !important;
+    background: var(--slate-50);
+    border: 1.5px solid var(--slate-200);
+    border-radius: 10px;
+    cursor: pointer; transition: all .22s;
+    display: flex; align-items: center; justify-content: center; gap: .4rem;
+    text-decoration: none;
+}
+.btn-back:hover {
+    background: var(--slate-700);
+    color: white !important;
+    border-color: var(--slate-700);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.12);
+    text-decoration: none;
+}
 
-        /* Location info */
-        .location-info {
-            background: rgba(59, 130, 246, 0.05);
-            border: 1px solid rgba(59, 130, 246, 0.1);
-            border-radius: 10px;
-            padding: 0.75rem;
-            margin-bottom: 1rem;
-            font-size: clamp(0.8125rem, 2vw, 0.875rem);
-            color: #3b82f6;
-        }
+/* Loading overlay */
+.loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,0.55);
+    display: none; align-items: center; justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+.loading-content {
+    background: white;
+    padding: 2rem 2.5rem;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+    border: 1px solid var(--slate-200);
+}
+.loading-content p {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: .9375rem; font-weight: 600;
+    color: var(--slate-700);
+    margin-top: .75rem;
+}
+.loading-content .spinner-border {
+    color: var(--blue-600) !important;
+}
 
-        /* Loading overlay */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
+/* Responsive */
+@media (max-width: 860px) {
+    .card-outer {
+        max-width: 460px; min-height: unset;
+        border-radius: 20px; background: transparent;
+        border: none; box-shadow: none;
+    }
+    .form-panel { border-radius: 20px; box-shadow: 0 24px 56px rgba(0,0,0,.28); }
+}
+@media (max-width: 480px) {
+    .page-wrap { padding: 1.25rem 1rem; }
+    .form-panel { padding: 1.75rem 1.25rem; }
+}
+@media (max-height: 700px) and (orientation: landscape) {
+    .page-wrap { padding: 1rem; }
+    .form-panel { padding: 1.25rem 1.75rem; align-items: flex-start; }
+}
+</style>
 
-        .loading-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
-        }
+{{-- BACKGROUND --}}
+<div class="aurora-bg">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="orb orb-c"></div>
+    <div class="arc-ring arc-1"></div>
+    <div class="arc-ring arc-2"></div>
+    <div class="arc-ring arc-3"></div>
+    <div class="arc-ring arc-4"></div>
+    <div class="arc-ring arc-5"></div>
+</div>
 
-        /* Mobile optimization */
-        @media (max-width: 480px) {
-            .clean-face-container {
-                padding: 0.75rem;
-                max-width: 100%;
-            }
-            
-            .face-recognition-card {
-                padding: 1.5rem 1.25rem;
-                border-radius: 16px;
-            }
-            
-            .video-container {
-                margin: 0.75rem auto 1rem;
-            }
-        }
+{{-- PAGE --}}
+<div class="page-wrap">
+    <div class="card-outer">
+        <div class="form-panel">
+            <div class="fp-inner">
 
-        /* Landscape phone optimization */
-        @media (max-height: 700px) and (orientation: landscape) {
-            .clean-face-container {
-                padding: 0.75rem;
-                justify-content: flex-start;
-                padding-top: 1rem;
-            }
-            
-            .face-recognition-card {
-                padding: 1.25rem;
-            }
-            
-            .clean-title {
-                margin-bottom: 0.5rem;
-            }
-            
-            .clean-subtitle {
-                margin-bottom: 1rem;
-            }
-            
-            .instructions,
-            .status-indicator {
-                padding: 0.75rem;
-                margin-bottom: 1rem;
-            }
-            
-            .video-container {
-                margin: 0.75rem auto 1rem;
-            }
-        }
+                <h1 class="fp-title">
+                    <i class="fas fa-user-circle" style="color:#3b4cca; margin-right:.375rem;"></i>
+                    {{ $title }}
+                </h1>
+                <p class="fp-sub">Posisikan wajah Anda di dalam frame untuk absen pulang.</p>
 
-        /* Consistent white theme - no dark mode */
-    </style>
-
-    <div class="clean-face-container">
-        <div class="face-recognition-card">
-            <h1 class="clean-title">
-                <i class="fas fa-user-circle" style="margin-right: 0.5rem; color: #ef4444;"></i>
-                {{ $title }}
-            </h1>
-            <p class="clean-subtitle">
-                Posisikan wajah Anda di dalam frame untuk absen pulang
-            </p>
-            
-            <div class="instructions">
-                <div class="instruction-title">
-                    <i class="fas fa-info-circle"></i>
-                    Cara Penggunaan:
+                <div class="instructions-box">
+                    <div class="instructions-title">
+                        <i class="fas fa-info-circle"></i>
+                        Cara Penggunaan
+                    </div>
+                    <ul class="instructions-list">
+                        <li class="instructions-item">
+                            <i class="fas fa-circle"></i>
+                            Pastikan wajah terlihat jelas dalam frame
+                        </li>
+                        <li class="instructions-item">
+                            <i class="fas fa-circle"></i>
+                            Jaga jarak yang tepat dengan kamera
+                        </li>
+                        <li class="instructions-item">
+                            <i class="fas fa-circle"></i>
+                            Tunggu hingga sistem mengenali wajah Anda
+                        </li>
+                    </ul>
                 </div>
-                <ul class="instruction-list">
-                    <li class="instruction-item">
-                        <i class="fas fa-dot-circle" style="margin-top: 0.125rem; font-size: 0.5rem;"></i>
-                        Pastikan wajah terlihat jelas dalam frame
-                    </li>
-                    <li class="instruction-item">
-                        <i class="fas fa-dot-circle" style="margin-top: 0.125rem; font-size: 0.5rem;"></i>
-                        Jaga jarak yang tepat dengan kamera
-                    </li>
-                    <li class="instruction-item">
-                        <i class="fas fa-dot-circle" style="margin-top: 0.125rem; font-size: 0.5rem;"></i>
-                        Tunggu hingga sistem mengenali wajah Anda
-                    </li>
-                </ul>
+
+                <div class="status-box" id="status-box">
+                    <i class="fas fa-camera" id="status-icon"></i>
+                    <span class="status-text" id="status-message">Memuat sistem pengenalan wajah...</span>
+                </div>
+
+                <div class="location-box" id="location-box">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="location-text">Mendeteksi lokasi Anda...</span>
+                </div>
+
+                <div class="video-wrap">
+                    <video id="video" autoplay playsinline></video>
+                </div>
+
+                <input type="hidden" name="lat" id="lat">
+                <input type="hidden" name="long" id="long">
+
+                <a href="{{ url('/') }}" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                    Kembali ke Login
+                </a>
+
             </div>
-            
-            <div class="status-indicator">
-                <p class="status-text">
-                    <i class="fas fa-camera"></i>
-                    <span id="status-message">Memuat sistem pengenalan wajah...</span>
-                </p>
-            </div>
-            
-            <div class="location-info">
-                <i class="fas fa-map-marker-alt" style="margin-right: 0.25rem;"></i>
-                Mendeteksi lokasi Anda...
-            </div>
-            
-            <div class="video-container">
-                <video id="video" autoplay playsinline></video>
-            </div>
-            
-            <input type="hidden" name="lat" id="lat">
-            <input type="hidden" name="long" id="long">
-            
-            <a href="{{ url('/') }}" class="clean-btn">
-                <i class="fas fa-arrow-left" style="margin-right: 0.375rem;"></i>
-                Kembali ke Login
-            </a>
         </div>
     </div>
+</div>
 
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-content">
-            <div class="spinner-border text-danger" role="status" style="margin-bottom: 1rem;">
-                <span class="sr-only">Loading...</span>
-            </div>
-            <p>Memproses pengenalan wajah...</p>
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="spinner-border" role="status" style="width:2.5rem;height:2.5rem;">
+            <span class="sr-only">Loading...</span>
         </div>
+        <p>Memproses pengenalan wajah...</p>
     </div>
+</div>
 
-    @push('script')
-        <script src="{{ url('/face/dist/face-api.min.js') }}"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script>
-            function updateStatus(message, type = 'info') {
-                const statusElement = document.getElementById('status-message');
-                const statusContainer = document.querySelector('.status-indicator');
-                const icons = {
-                    'info': 'fas fa-camera',
-                    'success': 'fas fa-check-circle',
-                    'error': 'fas fa-exclamation-triangle',
-                    'processing': 'fas fa-spinner fa-spin',
-                    'loading': 'fas fa-cog fa-spin'
-                };
-                
-                const colors = {
-                    'info': '#dc2626',
-                    'success': '#059669', 
-                    'error': '#dc2626',
-                    'processing': '#3b82f6',
-                    'loading': '#6b7280'
-                };
-                
-                statusElement.textContent = message;
-                statusContainer.querySelector('i').className = icons[type];
-                statusContainer.style.borderColor = colors[type] + '30';
-                statusContainer.style.backgroundColor = colors[type] + '10';
-                statusContainer.querySelector('.status-text').style.color = colors[type];
-            }
+@push('script')
+    <script src="{{ url('/face/dist/face-api.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function updateStatus(message, type = 'info') {
+            const statusMsg  = document.getElementById('status-message');
+            const statusBox  = document.getElementById('status-box');
+            const statusIcon = document.getElementById('status-icon');
 
-            function showLoading() {
-                document.getElementById('loadingOverlay').style.display = 'flex';
-            }
-
-            function hideLoading() {
-                document.getElementById('loadingOverlay').style.display = 'none';
-            }
-
-            function getLocation() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(showPosition, showLocationError);
-                } else {
-                    document.querySelector('.location-info').innerHTML = 
-                        '<i class="fas fa-exclamation-triangle" style="margin-right: 0.25rem;"></i>Geolocation tidak didukung browser ini';
-                }
-            }
-
-            function showPosition(position) {
-                $('#lat').val(position.coords.latitude);
-                $('#long').val(position.coords.longitude);
-                document.querySelector('.location-info').innerHTML = 
-                    '<i class="fas fa-map-marker-alt" style="margin-right: 0.25rem;"></i>Lokasi terdeteksi ✓';
-            }
-
-            function showLocationError(error) {
-                document.querySelector('.location-info').innerHTML = 
-                    '<i class="fas fa-exclamation-triangle" style="margin-right: 0.25rem;"></i>Gagal mendeteksi lokasi';
-            }
-
-            // Get location every 5 seconds
-            setInterval(getLocation, 5000);
-            getLocation(); // Initial call
-
-            let faceMatcher = undefined;
-            let video = document.getElementById("video");
-            let canvas = document.createElement("canvas");
-            let ctx = canvas.getContext("2d");
-            
-            // Append canvas to video container instead of body
-            document.querySelector('.video-container').appendChild(canvas);
-
-            let width = 640; // Increased resolution for better face detection
-            let height = 480;
-
-            const startStream = async () => {
-                try {
-                    updateStatus('Mengakses kamera...', 'loading');
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: { 
-                            facingMode: "user", 
-                            width: { ideal: 640 }, 
-                            height: { ideal: 480 },
-                            frameRate: { ideal: 30 }
-                        },
-                        audio: false
-                    });
-                    video.srcObject = stream;
-                    updateStatus('Kamera aktif, memuat model AI...', 'loading');
-                } catch (error) {
-                    console.error('Error accessing camera:', error);
-                    updateStatus('Gagal mengakses kamera', 'error');
-                }
-            }
-
-            // Load required models
-            Promise.all([
-                faceapi.nets.tinyFaceDetector.loadFromUri("{{ url('/face/weights') }}"),
-                faceapi.nets.faceLandmark68Net.loadFromUri("{{ url('/face/weights') }}"),
-                faceapi.nets.faceRecognitionNet.loadFromUri("{{ url('/face/weights') }}")
-            ]).then(startStream);
-
-            video.onloadedmetadata = () => {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                start();
+            const icons = {
+                'info':       'fas fa-camera',
+                'success':    'fas fa-check-circle',
+                'error':      'fas fa-exclamation-triangle',
+                'processing': 'fas fa-spinner fa-spin',
+                'loading':    'fas fa-cog fa-spin'
+            };
+            const colors = {
+                'info':       { bg: '#ecfdf5', border: '#a7f3d0', text: '#047857', icon: '#059669' },
+                'success':    { bg: '#ecfdf5', border: '#a7f3d0', text: '#047857', icon: '#059669' },
+                'error':      { bg: '#fef2f2', border: '#fca5a5', text: '#b91c1c', icon: '#ef4444' },
+                'processing': { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8', icon: '#3b82f6' },
+                'loading':    { bg: '#f8fafc', border: '#e2e8f0', text: '#475569', icon: '#64748b' }
             };
 
-            async function start() {
-                updateStatus('Memuat data wajah terdaftar...', 'loading');
-                
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    }
-                });
+            const c = colors[type] || colors['info'];
+            statusMsg.textContent = message;
+            statusIcon.className  = icons[type] || icons['info'];
+            statusBox.style.background   = c.bg;
+            statusBox.style.borderColor  = c.border;
+            statusMsg.style.color        = c.text;
+            statusIcon.style.color       = c.icon;
+        }
 
-                // Get neural data to create faceMatcher
-                $.ajax({
-                    datatype: 'json',
-                    url: "{{ url('/ajaxGetNeural') }}",
-                    data: ""
-                }).done(async function(data) {
-                    if (data.length > 2) {
-                        var json_str = "{\"parent\":" + data + "}"
-                        var content = JSON.parse(json_str);
-                        for (let x = 0; x < content.parent.length; x++) {
-                            for (let y = 0; y < content.parent[x].descriptors.length; y++) {
-                                let results = Object.values(content.parent[x].descriptors[y])
-                                content.parent[x].descriptors[y] = new Float32Array(results)
-                            }
-                        }
-                        faceMatcher = await createFaceMatcher(content);
-                        updateStatus('Sistem siap! Arahkan wajah ke kamera', 'info');
-                        onPlay();
-                    } else {
-                        updateStatus('Tidak ada data wajah terdaftar', 'error');
-                    }
-                }).fail(function() {
-                    updateStatus('Gagal memuat data wajah', 'error');
-                });
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showLocationError);
+            } else {
+                document.getElementById('location-text').textContent = 'Geolocation tidak didukung browser ini';
             }
+        }
+        function showPosition(position) {
+            $('#lat').val(position.coords.latitude);
+            $('#long').val(position.coords.longitude);
+            document.getElementById('location-text').textContent = 'Lokasi terdeteksi ✓';
+        }
+        function showLocationError() {
+            document.getElementById('location-text').textContent = 'Gagal mendeteksi lokasi';
+        }
 
-            async function createFaceMatcher(data) {
-                const labeledFaceDescriptors = await Promise.all(data.parent.map(className => {
-                    return new faceapi.LabeledFaceDescriptors(
-                        className.label,
-                        className.descriptors.map(d => new Float32Array(d))
-                    );
-                }));
-                return new faceapi.FaceMatcher(labeledFaceDescriptors, 0.4); // Reduced threshold for better recognition
+        setInterval(getLocation, 5000);
+        getLocation();
+
+        let faceMatcher = undefined;
+        let video = document.getElementById("video");
+        let canvas = document.createElement("canvas");
+        let ctx = canvas.getContext("2d");
+
+        document.querySelector('.video-wrap').appendChild(canvas);
+
+        let width = 640;
+        let height = 480;
+
+        const startStream = async () => {
+            try {
+                updateStatus('Mengakses kamera...', 'loading');
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { 
+                        facingMode: "user", 
+                        width: { ideal: 640 }, 
+                        height: { ideal: 480 },
+                        frameRate: { ideal: 30 }
+                    },
+                    audio: false
+                });
+                video.srcObject = stream;
+                updateStatus('Kamera aktif, memuat model AI...', 'loading');
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                updateStatus('Gagal mengakses kamera', 'error');
             }
+        }
 
-            async function onPlay() {
-                if (faceMatcher) {
-                    const displaySize = { width: video.videoWidth, height: video.videoHeight };
-                    faceapi.matchDimensions(canvas, displaySize);
+        Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri("{{ url('/face/weights') }}"),
+            faceapi.nets.faceLandmark68Net.loadFromUri("{{ url('/face/weights') }}"),
+            faceapi.nets.faceRecognitionNet.loadFromUri("{{ url('/face/weights') }}")
+        ]).then(startStream);
 
-                    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({
-                        inputSize: 416, // Increased input size for better detection
-                        scoreThreshold: 0.3 // Lower threshold for better detection
-                    }))
-                        .withFaceLandmarks()
-                        .withFaceDescriptors();
-                    const resizedDetections = faceapi.resizeResults(detections, displaySize);
-                    const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
+        video.onloadedmetadata = () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            start();
+        };
 
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                    results.forEach((result, i) => {
-                        const box = resizedDetections[i].detection.box;
-                        const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() });
-                        drawBox.draw(canvas);
-
-                        let label = result.label;
-                        let distance = result.distance;
-                        
-                        if (label !== "unknown" && distance < 0.6) { // Increased distance threshold for better recognition
-                            updateStatus('Wajah dikenali! Memproses absen...', 'processing');
-                            showLoading();
-
-                            let imageURL = canvas.toDataURL();
-                            var canvas2 = document.createElement('canvas');
-                            canvas2.width = 600;
-                            canvas2.height = 600;
-                            var ctx = canvas2.getContext('2d');
-                            ctx.drawImage(video, 0, 0, 600, 600);
-                            var new_image_url = canvas2.toDataURL();
-                            var img = document.createElement('img');
-                            img.src = new_image_url;
-                            let lat = $('#lat').val();
-                            let long = $('#long').val();
-                            
-                            $.ajax({
-                                type: 'POST',
-                                url: "{{ url('/presensi-pulang/store') }}",
-                                data: { 
-                                    username: label, 
-                                    image: img.src, 
-                                    lat: lat, 
-                                    long: long,
-                                    _token: $('meta[name="csrf-token"]').attr('content')
-                                },
-                                cache: false,
-                                success: function(msg) {
-                                    hideLoading();
-                                    let message = '';
-                                    let icon = '';
-                                    switch (msg) {
-                                        case 'pulang':
-                                            message = 'Absen pulang berhasil dicatat!';
-                                            icon = 'success';
-                                            updateStatus('Absen pulang berhasil!', 'success');
-                                            break;
-                                        case 'outlocation':
-                                            message = 'Anda berada di luar radius kantor';
-                                            icon = 'error';
-                                            updateStatus('Di luar radius kantor', 'error');
-                                            break;
-                                        case 'selesai':
-                                            message = 'Anda sudah melakukan absen pulang hari ini';
-                                            icon = 'warning';
-                                            updateStatus('Sudah absen pulang hari ini', 'error');
-                                            break;
-                                        case 'noMs':
-                                            message = 'Hubungi Admin untuk mengatur shift Anda';
-                                            icon = 'error';
-                                            updateStatus('Shift belum diatur', 'error');
-                                            break;
-                                        case 'noMasuk':
-                                            message = 'Anda harus absen masuk terlebih dahulu';
-                                            icon = 'error';
-                                            updateStatus('Belum absen masuk', 'error');
-                                            break;
-                                        default:
-                                            message = 'Tidak ada data user terdaftar';
-                                            icon = 'error';
-                                            updateStatus('User tidak terdaftar', 'error');
-                                    }
-                                    Swal.fire({
-                                        icon: icon,
-                                        title: icon === 'success' ? 'Berhasil!' : 'Perhatian',
-                                        text: message,
-                                        timer: 3000,
-                                        showConfirmButton: false
-                                    });
-                                    setTimeout(() => {
-                                        updateStatus('Sistem siap! Arahkan wajah ke kamera', 'info');
-                                    }, 3000);
-                                },
-                                error: function(data) {
-                                    hideLoading();
-                                    updateStatus('Terjadi kesalahan sistem', 'error');
-                                    console.error('Error:', data);
-                                }
-                            });
-                        } else if (detections.length > 0) {
-                            updateStatus(`Wajah terdeteksi, mengenali... (${detections.length} wajah)`, 'processing');
-                        } else {
-                            updateStatus('Tidak ada wajah terdeteksi', 'info');
-                        }
-                    });
+        async function start() {
+            updateStatus('Memuat data wajah terdaftar...', 'loading');
+            
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
+            });
 
-                setTimeout(() => onPlay(), 500); // Reduced interval for more responsive detection
+            $.ajax({
+                datatype: 'json',
+                url: "{{ url('/ajaxGetNeural') }}",
+                data: ""
+            }).done(async function(data) {
+                if (data.length > 2) {
+                    var json_str = "{\"parent\":" + data + "}"
+                    var content = JSON.parse(json_str);
+                    for (let x = 0; x < content.parent.length; x++) {
+                        for (let y = 0; y < content.parent[x].descriptors.length; y++) {
+                            let results = Object.values(content.parent[x].descriptors[y])
+                            content.parent[x].descriptors[y] = new Float32Array(results)
+                        }
+                    }
+                    faceMatcher = await createFaceMatcher(content);
+                    updateStatus('Sistem siap! Arahkan wajah ke kamera', 'info');
+                    onPlay();
+                } else {
+                    updateStatus('Tidak ada data wajah terdaftar', 'error');
+                }
+            }).fail(function() {
+                updateStatus('Gagal memuat data wajah', 'error');
+            });
+        }
+
+        async function createFaceMatcher(data) {
+            const labeledFaceDescriptors = await Promise.all(data.parent.map(className => {
+                return new faceapi.LabeledFaceDescriptors(
+                    className.label,
+                    className.descriptors.map(d => new Float32Array(d))
+                );
+            }));
+            return new faceapi.FaceMatcher(labeledFaceDescriptors, 0.4);
+        }
+
+        async function onPlay() {
+            if (faceMatcher) {
+                const displaySize = { width: video.videoWidth, height: video.videoHeight };
+                faceapi.matchDimensions(canvas, displaySize);
+
+                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({
+                    inputSize: 416,
+                    scoreThreshold: 0.3
+                }))
+                    .withFaceLandmarks()
+                    .withFaceDescriptors();
+                const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                const results = resizedDetections.map(d => faceMatcher.findBestMatch(d.descriptor));
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                results.forEach((result, i) => {
+                    const box = resizedDetections[i].detection.box;
+                    const drawBox = new faceapi.draw.DrawBox(box, { label: result.toString() });
+                    drawBox.draw(canvas);
+
+                    let label = result.label;
+                    let distance = result.distance;
+                    
+                    if (label !== "unknown" && distance < 0.6) {
+                        updateStatus('Wajah dikenali! Memproses absen...', 'processing');
+                        showLoading();
+
+                        let imageURL = canvas.toDataURL();
+                        var canvas2 = document.createElement('canvas');
+                        canvas2.width = 600;
+                        canvas2.height = 600;
+                        var ctx = canvas2.getContext('2d');
+                        ctx.drawImage(video, 0, 0, 600, 600);
+                        var new_image_url = canvas2.toDataURL();
+                        var img = document.createElement('img');
+                        img.src = new_image_url;
+                        let lat = $('#lat').val();
+                        let long = $('#long').val();
+                        
+                        $.ajax({
+                            type: 'POST',
+                            url: "{{ url('/presensi-pulang/store') }}",
+                            data: { 
+                                username: label, 
+                                image: img.src, 
+                                lat: lat, 
+                                long: long,
+                                _token: $('meta[name="csrf-token"]').attr('content')
+                            },
+                            cache: false,
+                            success: function(msg) {
+                                hideLoading();
+                                let message = '';
+                                let icon = '';
+                                switch (msg) {
+                                    case 'pulang':
+                                        message = 'Absen pulang berhasil dicatat!';
+                                        icon = 'success';
+                                        updateStatus('Absen pulang berhasil!', 'success');
+                                        break;
+                                    case 'outlocation':
+                                        message = 'Anda berada di luar radius kantor';
+                                        icon = 'error';
+                                        updateStatus('Di luar radius kantor', 'error');
+                                        break;
+                                    case 'selesai':
+                                        message = 'Anda sudah melakukan absen pulang hari ini';
+                                        icon = 'warning';
+                                        updateStatus('Sudah absen pulang hari ini', 'error');
+                                        break;
+                                    case 'noMs':
+                                        message = 'Hubungi Admin untuk mengatur shift Anda';
+                                        icon = 'error';
+                                        updateStatus('Shift belum diatur', 'error');
+                                        break;
+                                    case 'noMasuk':
+                                        message = 'Anda harus absen masuk terlebih dahulu';
+                                        icon = 'error';
+                                        updateStatus('Belum absen masuk', 'error');
+                                        break;
+                                    default:
+                                        message = 'Tidak ada data user terdaftar';
+                                        icon = 'error';
+                                        updateStatus('User tidak terdaftar', 'error');
+                                }
+                                Swal.fire({
+                                    icon: icon,
+                                    title: icon === 'success' ? 'Berhasil!' : 'Perhatian',
+                                    text: message,
+                                    timer: 3000,
+                                    showConfirmButton: false
+                                });
+                                setTimeout(() => {
+                                    updateStatus('Sistem siap! Arahkan wajah ke kamera', 'info');
+                                }, 3000);
+                            },
+                            error: function(data) {
+                                hideLoading();
+                                updateStatus('Terjadi kesalahan sistem', 'error');
+                                console.error('Error:', data);
+                            }
+                        });
+                    } else if (detections.length > 0) {
+                        updateStatus(`Wajah terdeteksi, mengenali... (${detections.length} wajah)`, 'processing');
+                    } else {
+                        updateStatus('Tidak ada wajah terdeteksi', 'info');
+                    }
+                });
             }
-        </script>
-    @endpush
+
+            setTimeout(() => onPlay(), 500);
+        }
+    </script>
+@endpush
 @endsection
-
-
