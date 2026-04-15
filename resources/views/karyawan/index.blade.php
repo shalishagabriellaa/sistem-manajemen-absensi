@@ -587,7 +587,7 @@
                                             </li>
                                             <li>
                                                 <a class="dropdown-item" href="{{ url('/pegawai/shift/'.$du->id) }}">
-                                                    <i class="fa fa-clock me-2" style="color:coral"></i> Input Shift
+                                                    <i class="fa fa-clock me-2" style="color:coral"></i> Mapping Shift
                                                 </a>
                                             </li>
                                             <li>
